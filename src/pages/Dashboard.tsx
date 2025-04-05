@@ -13,13 +13,11 @@ const Dashboard = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showResponseDisplay, setShowResponseDisplay] = useState(true);
   const [hasNewResponse, setHasNewResponse] = useState(false);
   
   const handleComplaintSubmit = ({ complaint, category }: { complaint: string; category: string }) => {
     setIsProcessing(true);
     setAiResponse(null);
-    setShowResponseDisplay(true);
     
     // Simulate AI processing
     setTimeout(() => {
@@ -77,27 +75,17 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-5 space-y-6">
               <ComplaintForm onSubmit={handleComplaintSubmit} />
-              
-              <div className="block lg:hidden h-[350px]">
-                <ResponseDisplay 
-                  response={aiResponse}
-                  isLoading={isProcessing}
-                />
-              </div>
+              <ResponseDisplay 
+                response={aiResponse}
+                isLoading={isProcessing}
+              />
             </div>
             
-            <div className="lg:col-span-7 space-y-6">
-              <div className="h-[400px]">
+            <div className="lg:col-span-7">
+              <div className="h-full">
                 <AnalyticsDisplay 
                   resolvedPercentage={80}
                   urgentCases={12}
-                />
-              </div>
-              
-              <div className="hidden lg:block h-[350px]">
-                <ResponseDisplay 
-                  response={aiResponse}
-                  isLoading={isProcessing}
                 />
               </div>
             </div>

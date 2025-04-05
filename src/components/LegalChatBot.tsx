@@ -76,7 +76,7 @@ const LegalChatBot = () => {
   return (
     <div className="fixed bottom-4 right-4 z-40">
       {isOpen ? (
-        <GlassmorphicCard className="w-[340px] h-[400px] glow-teal animate-fade-in">
+        <GlassmorphicCard className="w-[340px] h-[400px] bg-background/90 dark:bg-sidebar/90 animate-fade-in">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h3 className="font-bold">Legal Assistant</h3>
@@ -104,7 +104,7 @@ const LegalChatBot = () => {
                     className={`p-3 rounded-lg ${
                       message.sender === 'user'
                         ? 'bg-teal text-white rounded-tr-none'
-                        : 'bg-coral/20 text-foreground rounded-tl-none'
+                        : 'bg-coral/10 text-foreground rounded-tl-none'
                     }`}
                   >
                     {message.text}
@@ -149,7 +149,7 @@ const LegalChatBot = () => {
       ) : (
         <Button
           onClick={toggleChat}
-          className="rounded-full h-14 w-14 bg-teal hover:bg-teal/90 shadow-lg transition-transform hover:-translate-y-1 hover:glow-teal"
+          className="rounded-full h-14 w-14 bg-teal hover:bg-teal/90 shadow-lg transition-transform hover:-translate-y-1"
           size="icon"
         >
           <MessageSquare className="h-6 w-6" />
