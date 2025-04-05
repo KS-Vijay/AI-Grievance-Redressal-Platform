@@ -1,12 +1,35 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useTheme } from '@/context/ThemeContext';
+import NavBar from '@/components/NavBar';
+import HeroSection from '@/components/HeroSection';
+import Footer from '@/components/Footer';
+import ThreeJSBackground from '@/components/ThreeJSBackground';
 
 const Index = () => {
+  const { isDarkMode, toggleDarkMode } = useTheme();
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  useEffect(() => {
+    // Add a slight delay to ensure smooth animations
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className={`min-h-screen flex flex-col ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
+      <ThreeJSBackground />
+      <NavBar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+      
+      <main className="flex-grow">
+        <HeroSection />
+      </main>
+      
+      <Footer />
     </div>
   );
 };
