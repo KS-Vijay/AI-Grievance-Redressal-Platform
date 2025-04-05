@@ -44,6 +44,8 @@ interface NavBarProps {
 const NavBar = ({ isDarkMode, toggleDarkMode }: NavBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const location = useLocation();
+  const isLoggedIn = location.pathname === '/dashboard'; // Consider user logged in if on dashboard
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -54,9 +56,14 @@ const NavBar = ({ isDarkMode, toggleDarkMode }: NavBarProps) => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
             <NavLink to="/">Home</NavLink>
-            <NavLink to="/signin">Sign In</NavLink>
-            <NavLink to="/signup">Sign Up</NavLink>
-            <NavLink to="/dashboard">Dashboard</NavLink>
+            {!isLoggedIn ? (
+              <>
+                <NavLink to="/signin">Sign In</NavLink>
+                <NavLink to="/signup">Sign Up</NavLink>
+              </>
+            ) : (
+              <NavLink to="/dashboard">Dashboard</NavLink>
+            )}
             
             <Button 
               variant="ghost" 
@@ -90,9 +97,14 @@ const NavBar = ({ isDarkMode, toggleDarkMode }: NavBarProps) => {
         <div className="md:hidden bg-card border-b border-border animate-fade-in">
           <div className="py-2 px-4 space-y-1">
             <NavLink to="/" className="block py-2">Home</NavLink>
-            <NavLink to="/signin" className="block py-2">Sign In</NavLink>
-            <NavLink to="/signup" className="block py-2">Sign Up</NavLink>
-            <NavLink to="/dashboard" className="block py-2">Dashboard</NavLink>
+            {!isLoggedIn ? (
+              <>
+                <NavLink to="/signin" className="block py-2">Sign In</NavLink>
+                <NavLink to="/signup" className="block py-2">Sign Up</NavLink>
+              </>
+            ) : (
+              <NavLink to="/dashboard" className="block py-2">Dashboard</NavLink>
+            )}
           </div>
         </div>
       )}
