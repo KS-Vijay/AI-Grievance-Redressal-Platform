@@ -2,7 +2,16 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon, User } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface NavLinkProps {
   to: string;
@@ -35,6 +44,41 @@ const Logo = () => (
     </div>
   </Link>
 );
+
+const ProfileMenu = () => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="rounded-full ml-2 hover:bg-background/20">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-teal/20 text-teal">DU</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56 mt-1">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/profile" className="cursor-pointer w-full flex items-center">
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/settings" className="cursor-pointer w-full flex items-center">
+            <span>Settings</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/" className="cursor-pointer w-full text-destructive">
+            Logout
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 interface NavBarProps {
   isDarkMode: boolean;
@@ -73,6 +117,8 @@ const NavBar = ({ isDarkMode, toggleDarkMode }: NavBarProps) => {
             >
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
+            
+            {isLoggedIn && <ProfileMenu />}
           </nav>
           
           {/* Mobile Navigation Toggle */}
@@ -85,6 +131,9 @@ const NavBar = ({ isDarkMode, toggleDarkMode }: NavBarProps) => {
             >
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
+            
+            {isLoggedIn && <ProfileMenu />}
+            
             <Button variant="ghost" size="icon" onClick={toggleMenu} className="rounded-full">
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>

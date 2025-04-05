@@ -7,11 +7,16 @@ import ComplaintForm from '@/components/ComplaintForm';
 import ResponseDisplay from '@/components/ResponseDisplay';
 import AnalyticsDisplay from '@/components/AnalyticsDisplay';
 import LegalChatBot from '@/components/LegalChatBot';
+import ThreeJSBackground from '@/components/ThreeJSBackground';
+import { Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showResponseDisplay, setShowResponseDisplay] = useState(false);
+  const [hasNewResponse, setHasNewResponse] = useState(false);
   
   const handleComplaintSubmit = ({ complaint, category }: { complaint: string; category: string }) => {
     setIsProcessing(true);
@@ -38,38 +43,83 @@ const Dashboard = () => {
       
       setAiResponse(response);
       setIsProcessing(false);
+      setHasNewResponse(true);
     }, 5000);
   };
   
+  const toggleResponseDisplay = () => {
+    setShowResponseDisplay(!showResponseDisplay);
+    if (!showResponseDisplay) {
+      setHasNewResponse(false);
+    }
+  };
+  
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <ThreeJSBackground className="opacity-25" />
+      <div className="absolute inset-0 backdrop-blur-sm z-0"></div>
+      
       <NavBar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
       
-      <main className="flex-grow pt-24 pb-12 px-4">
+      <main className="flex-grow pt-24 pb-12 px-4 relative z-10">
         <div className="container mx-auto">
-          <div className="mb-8">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-extrabold text-3d">
+              <span className="text-gradient-teal">AI</span>
+              <span className="text-foreground ml-1">Grievance</span>
+              <span className="text-foreground/70 block text-xl mt-2">Revolutionize Startup Grievances with AI Precision</span>
+            </h1>
+          </div>
+          
+          <div className="mb-8 flex flex-col md:flex-row justify-between items-start gap-4">
             <ProfileCard 
               username="DemoUser"
               email="demo@example.com"
               joinDate="April 1, 2025"
               complaintsSubmitted={5}
             />
+            
+            <Button 
+              onClick={toggleResponseDisplay}
+              className="relative ml-auto"
+              variant="outline"
+              size="icon"
+            >
+              <Bell className="h-5 w-5" />
+              {hasNewResponse && (
+                <span className="absolute -top-1 -right-1 h-3 w-3 bg-coral rounded-full animate-pulse"></span>
+              )}
+            </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-8 animate-slide-up">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-5 space-y-8 animate-slide-up">
               <ComplaintForm onSubmit={handleComplaintSubmit} />
+              
+              {showResponseDisplay && (
+                <div className="lg:hidden">
+                  <ResponseDisplay 
+                    response={aiResponse}
+                    isLoading={isProcessing}
+                  />
+                </div>
+              )}
+            </div>
+            
+            <div className="lg:col-span-7 animate-slide-up animate-delay-200">
               <AnalyticsDisplay 
                 resolvedPercentage={80}
                 urgentCases={12}
               />
-            </div>
-            
-            <div className="animate-slide-up animate-delay-200">
-              <ResponseDisplay 
-                response={aiResponse}
-                isLoading={isProcessing}
-              />
+              
+              {showResponseDisplay && (
+                <div className="hidden lg:block mt-8">
+                  <ResponseDisplay 
+                    response={aiResponse}
+                    isLoading={isProcessing}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
