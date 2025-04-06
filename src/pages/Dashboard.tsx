@@ -10,7 +10,7 @@ import LegalChatBot from '@/components/LegalChatBot';
 import ThreeJSBackground from '@/components/ThreeJSBackground';
 
 const Dashboard = () => {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode } = useTheme();
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasNewResponse, setHasNewResponse] = useState(false);
@@ -49,7 +49,7 @@ const Dashboard = () => {
       <ThreeJSBackground className="opacity-25" />
       <div className="absolute inset-0 backdrop-blur-sm z-0"></div>
       
-      <NavBar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+      <NavBar isDarkMode={isDarkMode} />
       
       <main className="flex-grow pt-20 pb-12 px-4 relative z-10">
         <div className="container mx-auto">
