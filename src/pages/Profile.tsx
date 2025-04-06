@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Profile = () => {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode } = useTheme();
   const [isUpdating, setIsUpdating] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -49,7 +49,7 @@ const Profile = () => {
       <ThreeJSBackground className="opacity-25" />
       <div className="absolute inset-0 backdrop-blur-sm z-0"></div>
       
-      <NavBar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+      <NavBar isDarkMode={isDarkMode} />
       
       <main className="flex-grow pt-24 pb-12 px-4 relative z-10">
         <div className="container mx-auto max-w-4xl">

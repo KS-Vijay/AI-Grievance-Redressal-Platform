@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import ThreeJSBackground from '@/components/ThreeJSBackground';
 
 const Index = () => {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { isDarkMode } = useTheme();
   const [isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
@@ -23,7 +23,7 @@ const Index = () => {
   return (
     <div className={`min-h-screen flex flex-col ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
       <ThreeJSBackground />
-      <NavBar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+      <NavBar isDarkMode={isDarkMode} />
       
       <main className="flex-grow">
         <HeroSection />
