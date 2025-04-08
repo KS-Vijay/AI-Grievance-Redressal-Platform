@@ -24,3 +24,14 @@ dist-ssr
 *.sw?
 venv/
 .venv/
+fraud_model/
+.fraud_model/
+
+response_model/
+.response_model/
+
+sentiment_model/
+.sentiment_model/
+
+urgency_model/
+.urgency_model/
