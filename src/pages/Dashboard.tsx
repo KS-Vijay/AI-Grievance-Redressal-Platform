@@ -12,12 +12,34 @@ const Dashboard = () => {
   const { isDarkMode } = useTheme();
   const [complaintId, setComplaintId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [complaintId, setComplaintId] = useState<string | null>(null);
   const [hasNewResponse, setHasNewResponse] = useState(false);
   
-  const handleSetComplaintId = (id: string | null) => {
-    setComplaintId(id);
-    setIsProcessing(false);  // Reset when ID is set (ComplaintForm handles processing)
-    setHasNewResponse(true);
+  const handleComplaintSubmit = ({ complaint, category }: { complaint: string; category: string }) => {
+    // This function is kept for backward compatibility
+    // The actual API call is now in ComplaintForm.tsx
+    setAiResponse(null);
+    
+    // We'll fetch the response data after we know the backend is done processing
+    setTimeout(async () => {
+      if (complaintId) {
+        try {
+          const response = await fetch(`http://localhost:8000/get-response/${complaintId}`);
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch response');
+          }
+          
+          const data = await response.json();
+          setAiResponse(data.response);
+        } catch (error) {
+          console.error('Error fetching response:', error);
+        } finally {
+          setIsProcessing(false);
+          setHasNewResponse(true);
+        }
+      }
+    }, 5000); // Match the backend delay
   };
   
   return (
@@ -50,10 +72,19 @@ const Dashboard = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-5 space-y-6">
+<<<<<<< HEAD
               <ComplaintForm setComplaintId={handleSetComplaintId} />
+=======
+              <ComplaintForm 
+                onSubmit={handleComplaintSubmit} 
+                setComplaintId={setComplaintId}
+                setIsProcessing={setIsProcessing}
+              />
+>>>>>>> a396935d9ab3221dad09f7256a41cf0e6a57ceea
               <ResponseDisplay 
                 complaintId={complaintId}
                 isLoading={isProcessing}
+                complaintId={complaintId}
               />
             </div>
             

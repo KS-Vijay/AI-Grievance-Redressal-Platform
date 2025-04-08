@@ -18,11 +18,16 @@ interface ResponseData {
 interface ResponseDisplayProps {
   complaintId: string | null;  // Changed to complaintId to match App.tsx
   isLoading: boolean;
+  complaintId: string | null;
 }
 
+<<<<<<< HEAD
 const ResponseDisplay = ({ complaintId }: ResponseDisplayProps) => {
   const [response, setResponse] = useState<ResponseData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+=======
+const ResponseDisplay = ({ response, isLoading, complaintId }: ResponseDisplayProps) => {
+>>>>>>> a396935d9ab3221dad09f7256a41cf0e6a57ceea
   const [progress, setProgress] = useState(0);
   
   useEffect(() => {
@@ -89,7 +94,7 @@ const ResponseDisplay = ({ complaintId }: ResponseDisplayProps) => {
         </div>
         
         <div className="flex-1 flex items-center justify-center">
-          {!response && !isLoading ? (
+          {!response && !isLoading && !complaintId ? (
             <div className="text-center space-y-4 py-6">
               <Bell className="mx-auto h-16 w-16 text-foreground/30 animate-float" />
               <div>
@@ -152,6 +157,14 @@ const ResponseDisplay = ({ complaintId }: ResponseDisplayProps) => {
                   </div>
                   <span className="text-xs text-foreground/50">Just now</span>
                 </div>
+                
+                {complaintId && (
+                  <div className="mb-3 mt-2">
+                    <p className="text-xs text-foreground/70">Complaint ID:</p>
+                    <p className="text-sm font-medium bg-background/50 p-2 rounded border border-border/50 mt-1">{complaintId}</p>
+                  </div>
+                )}
+                
                 <h4 className="text-base font-medium mt-3 mb-2">Grievance Response</h4>
                 <p className="text-foreground text-sm whitespace-pre-line">{response?.response}</p>
                 <p className="text-foreground text-sm mt-2"><strong>Sentiment:</strong> {response?.sentiment}</p>
