@@ -72,15 +72,11 @@ const Dashboard = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-5 space-y-6">
-<<<<<<< HEAD
-              <ComplaintForm setComplaintId={handleSetComplaintId} />
-=======
               <ComplaintForm 
                 onSubmit={handleComplaintSubmit} 
                 setComplaintId={setComplaintId}
                 setIsProcessing={setIsProcessing}
               />
->>>>>>> a396935d9ab3221dad09f7256a41cf0e6a57ceea
               <ResponseDisplay 
                 complaintId={complaintId}
                 isLoading={isProcessing}
