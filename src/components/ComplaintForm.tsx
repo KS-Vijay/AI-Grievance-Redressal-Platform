@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,15 +12,15 @@ import { toast } from 'sonner';
 import GlassmorphicCard from './GlassmorphicCard';
 
 interface ComplaintFormProps {
-  onSubmit: (data: { complaint: string; category: string }) => void;
+  setComplaintId: (id: string | null) => void;
 }
 
-const ComplaintForm = ({ onSubmit }: ComplaintFormProps) => {
+const ComplaintForm = ({ setComplaintId }: ComplaintFormProps) => {
   const [complaint, setComplaint] = useState('');
   const [category, setCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!complaint || !category) {
@@ -31,14 +30,30 @@ const ComplaintForm = ({ onSubmit }: ComplaintFormProps) => {
     
     setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onSubmit({ complaint, category });
+    try {
+      console.log("Attempting fetch to http://localhost:8000/submit-complaint", { text: complaint, category });
+      const response = await fetch("http://127.0.0.1:8000/submit-complaint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: complaint, category })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setComplaintId(data.complaint_id);  // Call the prop function
       setComplaint('');
       setCategory('');
       toast.success('Complaint submitted successfully');
-    }, 1500);
+    } catch (error) {
+      console.error("Error submitting complaint:", error);
+      toast.error('Failed to submit complaint. Please try again.');
+      setComplaintId(null);  // Reset on error
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

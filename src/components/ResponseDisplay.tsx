@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import GlassmorphicCard from './GlassmorphicCard';
 import { X, Bell, CheckCircle2, AlertTriangle, RotateCw } from 'lucide-react';
@@ -6,34 +5,76 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
+interface ResponseData {
+  complaint_id: string;
+  category: string;
+  complaint: string;
+  response: string;
+  sentiment: string;
+  urgency: string;
+  fraud: string;
+}
+
 interface ResponseDisplayProps {
-  response: string | null;
+  complaintId: string | null;  // Changed to complaintId to match App.tsx
   isLoading: boolean;
 }
 
-const ResponseDisplay = ({ response, isLoading }: ResponseDisplayProps) => {
+const ResponseDisplay = ({ complaintId }: ResponseDisplayProps) => {
+  const [response, setResponse] = useState<ResponseData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (isLoading) {
+    if (complaintId && !response) {
+      setIsLoading(true);
       setProgress(0);
+      
+      // Start progress animation (5 seconds = 5000ms, 100% in 50ms steps = 100 steps)
       interval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 100) {
             clearInterval(interval);
             return 100;
           }
-          return prev + 1;
+          return prev + 2;  // 100 / 50 = 2% per step
         });
       }, 50);
+      
+      // Fetch response after 5 seconds
+      setTimeout(async () => {
+        try {
+          const res = await fetch(`http://localhost:8000/get-response/${complaintId}`);
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          const data = await res.json();
+          setResponse(data);
+        } catch (error) {
+          console.error("Error fetching response:", error);
+          setResponse({
+            complaint_id: complaintId,
+            category: "Unknown",
+            complaint: "Error fetching complaint",
+            response: "Failed to process complaint. Please try again.",
+            sentiment: "N/A",
+            urgency: "N/A",
+            fraud: "N/A"
+          });
+        } finally {
+          setIsLoading(false);
+          clearInterval(interval);
+          setProgress(100);
+        }
+      }, 5000);  // Matches backend delay
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isLoading]);
+  }, [complaintId]);
   
   return (
     <GlassmorphicCard className="relative">
@@ -112,7 +153,10 @@ const ResponseDisplay = ({ response, isLoading }: ResponseDisplayProps) => {
                   <span className="text-xs text-foreground/50">Just now</span>
                 </div>
                 <h4 className="text-base font-medium mt-3 mb-2">Grievance Response</h4>
-                <p className="text-foreground text-sm whitespace-pre-line">{response}</p>
+                <p className="text-foreground text-sm whitespace-pre-line">{response?.response}</p>
+                <p className="text-foreground text-sm mt-2"><strong>Sentiment:</strong> {response?.sentiment}</p>
+                <p className="text-foreground text-sm"><strong>Urgency:</strong> {response?.urgency}</p>
+                <p className="text-foreground text-sm"><strong>Fraud:</strong> {response?.fraud}</p>
               </div>
             </div>
           )}
