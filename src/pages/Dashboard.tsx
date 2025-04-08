@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import NavBar from '@/components/NavBar';
 import ProfileCard from '@/components/ProfileCard';
@@ -15,13 +15,12 @@ const Dashboard = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasNewResponse, setHasNewResponse] = useState(false);
   
-  const handleComplaintSubmit = ({ complaint, category }: { complaint: string; category: string }) => {
-    // This function is kept for backward compatibility
-    setIsProcessing(true);
+  // If we have a complaintId, fetch the response data after the processing delay
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
     
-    // We'll fetch the response data after we know the backend is done processing
-    setTimeout(async () => {
-      if (complaintId) {
+    if (complaintId && isProcessing) {
+      timer = setTimeout(async () => {
         try {
           const response = await fetch(`http://localhost:8000/get-response/${complaintId}`);
           
@@ -29,16 +28,20 @@ const Dashboard = () => {
             throw new Error('Failed to fetch response');
           }
           
-          // The response is handled in ResponseDisplay component
+          // Mark that we have a new response
           setHasNewResponse(true);
+          setIsProcessing(false);
         } catch (error) {
           console.error('Error fetching response:', error);
-        } finally {
           setIsProcessing(false);
         }
-      }
-    }, 5000); // Match the backend delay
-  };
+      }, 5000); // Match the backend delay
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [complaintId, isProcessing]);
   
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -71,13 +74,14 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-5 space-y-6">
               <ComplaintForm 
-                onSubmit={handleComplaintSubmit} 
+                onSubmit={() => {}} 
                 setComplaintId={setComplaintId}
                 setIsProcessing={setIsProcessing}
               />
               <ResponseDisplay 
                 complaintId={complaintId}
                 isLoading={isProcessing}
+                hasNewResponse={hasNewResponse}
               />
             </div>
             

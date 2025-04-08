@@ -19,16 +19,18 @@ interface ResponseData {
 interface ResponseDisplayProps {
   complaintId: string | null; 
   isLoading: boolean;
+  hasNewResponse?: boolean;
 }
 
-const ResponseDisplay = ({ complaintId, isLoading }: ResponseDisplayProps) => {
+const ResponseDisplay = ({ complaintId, isLoading, hasNewResponse = false }: ResponseDisplayProps) => {
   const [progress, setProgress] = useState(0);
   const [responseData, setResponseData] = useState<ResponseData | null>(null);
   
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (complaintId && !responseData) {
+    // Progress bar animation
+    if (isLoading) {
       setProgress(0);
       
       // Start progress animation (5 seconds = 5000ms, 100% in 50ms steps = 100 steps)
@@ -40,39 +42,44 @@ const ResponseDisplay = ({ complaintId, isLoading }: ResponseDisplayProps) => {
           }
           return prev + 2;  // 100 / 50 = 2% per step
         });
-      }, 50);
-      
-      // Fetch response after 5 seconds
-      setTimeout(async () => {
-        try {
-          const res = await fetch(`http://localhost:8000/get-response/${complaintId}`);
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-          }
-          const data = await res.json();
-          setResponseData(data);
-        } catch (error) {
-          console.error("Error fetching response:", error);
-          setResponseData({
-            complaint_id: complaintId,
-            category: "Unknown",
-            complaint: "Error fetching complaint",
-            response: "Failed to process complaint. Please try again.",
-            sentiment: "N/A",
-            urgency: "N/A",
-            fraud: "N/A"
-          });
-        } finally {
-          clearInterval(interval);
-          setProgress(100);
-        }
-      }, 5000);  // Matches backend delay
+      }, 100); // Slightly slower to match backend delay more accurately
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [complaintId]);
+  }, [isLoading]);
+  
+  // Fetch the response data when processing completes
+  useEffect(() => {
+    const fetchResponseData = async () => {
+      if (!complaintId || isLoading) return;
+      
+      try {
+        const response = await fetch(`http://localhost:8000/get-response/${complaintId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setResponseData(data);
+      } catch (error) {
+        console.error("Error fetching response:", error);
+        setResponseData({
+          complaint_id: complaintId,
+          category: "Unknown",
+          complaint: "Error fetching complaint",
+          response: "Failed to process complaint. Please try again.",
+          sentiment: "N/A",
+          urgency: "N/A",
+          fraud: "N/A"
+        });
+      }
+    };
+    
+    if (complaintId && hasNewResponse) {
+      fetchResponseData();
+    }
+  }, [complaintId, hasNewResponse, isLoading]);
   
   return (
     <GlassmorphicCard className="relative">
