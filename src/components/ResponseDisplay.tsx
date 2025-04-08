@@ -21,13 +21,7 @@ interface ResponseDisplayProps {
   complaintId: string | null;
 }
 
-<<<<<<< HEAD
-const ResponseDisplay = ({ complaintId }: ResponseDisplayProps) => {
-  const [response, setResponse] = useState<ResponseData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-=======
 const ResponseDisplay = ({ response, isLoading, complaintId }: ResponseDisplayProps) => {
->>>>>>> a396935d9ab3221dad09f7256a41cf0e6a57ceea
   const [progress, setProgress] = useState(0);
   
   useEffect(() => {

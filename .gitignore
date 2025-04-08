@@ -24,6 +24,7 @@ dist-ssr
 *.sw?
 venv/
 .venv/
+*.safetensors
 fraud_model/
 .fraud_model/
 
