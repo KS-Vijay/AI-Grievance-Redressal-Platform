@@ -13,35 +13,34 @@ const Dashboard = () => {
   const { isDarkMode } = useTheme();
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [complaintId, setComplaintId] = useState<string | null>(null);
   const [hasNewResponse, setHasNewResponse] = useState(false);
   
   const handleComplaintSubmit = ({ complaint, category }: { complaint: string; category: string }) => {
-    setIsProcessing(true);
+    // This function is kept for backward compatibility
+    // The actual API call is now in ComplaintForm.tsx
     setAiResponse(null);
     
-    // Simulate AI processing
-    setTimeout(() => {
-      // Generate a response based on the complaint and category
-      let response = '';
-      
-      if (category === 'product') {
-        response = `Based on your product issue, we recommend the following steps:\n\n1. Document all issues with timestamps and screenshots\n2. Contact customer support with detailed evidence\n3. If unresolved within 48 hours, escalate to a supervisor\n4. Consider mediation through our platform if necessary`;
-      } else if (category === 'payment') {
-        response = `For your payment dispute, our AI analysis suggests:\n\n1. Compile all payment receipts and communication\n2. Send a formal dispute letter referring to specific transaction IDs\n3. Allow 5 business days for resolution\n4. If unresolved, consider our escrow services for future transactions`;
-      } else if (category === 'employee') {
-        response = `Regarding your employee concern, we recommend:\n\n1. Review your employee handbook and contract terms\n2. Document specific incidents with dates and witnesses\n3. Request a formal meeting with HR and provide written notice\n4. Consider third-party mediation if initial steps are unsuccessful`;
-      } else if (category === 'vendor') {
-        response = `For your vendor issue, our recommended approach is:\n\n1. Review contract terms for breach clauses\n2. Send a formal notice specifying the contract violations\n3. Propose a resolution timeline of 14 days\n4. Consider alternative vendors while maintaining documentation for potential claims`;
-      } else if (category === 'legal') {
-        response = `Based on your legal concern, our AI suggests:\n\n1. Immediately preserve all relevant documents\n2. Consult with a specialized attorney in this domain\n3. Consider requesting a compliance review\n4. Implement revised procedures to prevent similar issues`;
-      } else {
-        response = `Thank you for your submission. Our analysis suggests:\n\n1. Clearly define the specific issues in writing\n2. Identify desired outcomes and reasonable timeline\n3. Propose multiple resolution options\n4. Be open to compromise while documenting all communication`;
+    // We'll fetch the response data after we know the backend is done processing
+    setTimeout(async () => {
+      if (complaintId) {
+        try {
+          const response = await fetch(`http://localhost:8000/get-response/${complaintId}`);
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch response');
+          }
+          
+          const data = await response.json();
+          setAiResponse(data.response);
+        } catch (error) {
+          console.error('Error fetching response:', error);
+        } finally {
+          setIsProcessing(false);
+          setHasNewResponse(true);
+        }
       }
-      
-      setAiResponse(response);
-      setIsProcessing(false);
-      setHasNewResponse(true);
-    }, 5000);
+    }, 5000); // Match the backend delay
   };
   
   return (
@@ -74,10 +73,15 @@ const Dashboard = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-5 space-y-6">
-              <ComplaintForm onSubmit={handleComplaintSubmit} />
+              <ComplaintForm 
+                onSubmit={handleComplaintSubmit} 
+                setComplaintId={setComplaintId}
+                setIsProcessing={setIsProcessing}
+              />
               <ResponseDisplay 
                 response={aiResponse}
                 isLoading={isProcessing}
+                complaintId={complaintId}
               />
             </div>
             

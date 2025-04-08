@@ -14,14 +14,16 @@ import GlassmorphicCard from './GlassmorphicCard';
 
 interface ComplaintFormProps {
   onSubmit: (data: { complaint: string; category: string }) => void;
+  setComplaintId: (id: string | null) => void;
+  setIsProcessing: (isProcessing: boolean) => void;
 }
 
-const ComplaintForm = ({ onSubmit }: ComplaintFormProps) => {
+const ComplaintForm = ({ onSubmit, setComplaintId, setIsProcessing }: ComplaintFormProps) => {
   const [complaint, setComplaint] = useState('');
   const [category, setCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!complaint || !category) {
@@ -30,15 +32,37 @@ const ComplaintForm = ({ onSubmit }: ComplaintFormProps) => {
     }
     
     setIsSubmitting(true);
+    setIsProcessing(true);
     
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const response = await fetch('http://localhost:8000/submit-complaint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          text: complaint, 
+          category 
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
+      const data = await response.json();
+      setComplaintId(data.complaint_id);
       onSubmit({ complaint, category });
       setComplaint('');
       setCategory('');
       toast.success('Complaint submitted successfully');
-    }, 1500);
+    } catch (error) {
+      console.error('Error submitting complaint:', error);
+      toast.error('Failed to submit complaint. Please try again.');
+      setIsProcessing(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

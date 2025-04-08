@@ -9,9 +9,10 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 interface ResponseDisplayProps {
   response: string | null;
   isLoading: boolean;
+  complaintId: string | null;
 }
 
-const ResponseDisplay = ({ response, isLoading }: ResponseDisplayProps) => {
+const ResponseDisplay = ({ response, isLoading, complaintId }: ResponseDisplayProps) => {
   const [progress, setProgress] = useState(0);
   
   useEffect(() => {
@@ -48,7 +49,7 @@ const ResponseDisplay = ({ response, isLoading }: ResponseDisplayProps) => {
         </div>
         
         <div className="flex-1 flex items-center justify-center">
-          {!response && !isLoading ? (
+          {!response && !isLoading && !complaintId ? (
             <div className="text-center space-y-4 py-6">
               <Bell className="mx-auto h-16 w-16 text-foreground/30 animate-float" />
               <div>
@@ -111,6 +112,14 @@ const ResponseDisplay = ({ response, isLoading }: ResponseDisplayProps) => {
                   </div>
                   <span className="text-xs text-foreground/50">Just now</span>
                 </div>
+                
+                {complaintId && (
+                  <div className="mb-3 mt-2">
+                    <p className="text-xs text-foreground/70">Complaint ID:</p>
+                    <p className="text-sm font-medium bg-background/50 p-2 rounded border border-border/50 mt-1">{complaintId}</p>
+                  </div>
+                )}
+                
                 <h4 className="text-base font-medium mt-3 mb-2">Grievance Response</h4>
                 <p className="text-foreground text-sm whitespace-pre-line">{response}</p>
               </div>
