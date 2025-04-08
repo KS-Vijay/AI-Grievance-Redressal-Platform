@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/context/ThemeContext';
 import NavBar from '@/components/NavBar';
 import ProfileCard from '@/components/ProfileCard';
@@ -8,12 +9,31 @@ import ResponseDisplay from '@/components/ResponseDisplay';
 import AnalyticsDisplay from '@/components/AnalyticsDisplay';
 import LegalChatBot from '@/components/LegalChatBot';
 import ThreeJSBackground from '@/components/ThreeJSBackground';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const { isDarkMode } = useTheme();
   const [complaintId, setComplaintId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasNewResponse, setHasNewResponse] = useState(false);
+  const [userData, setUserData] = useState<{ username: string; email: string } | null>(null);
+  const navigate = useNavigate();
+  
+  // Check for user authentication
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (!user) {
+      toast.error('Please sign in to access the dashboard');
+      navigate('/signin');
+    } else {
+      try {
+        setUserData(JSON.parse(user));
+      } catch (e) {
+        localStorage.removeItem('user');
+        navigate('/signin');
+      }
+    }
+  }, [navigate]);
   
   // If we have a complaintId, fetch the response data after the processing delay
   useEffect(() => {
@@ -43,6 +63,10 @@ const Dashboard = () => {
     };
   }, [complaintId, isProcessing]);
   
+  if (!userData) {
+    return null; // Don't render anything until we check auth
+  }
+  
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <ThreeJSBackground className="opacity-25" />
@@ -64,8 +88,8 @@ const Dashboard = () => {
           
           <div className="mb-6 flex justify-between items-start">
             <ProfileCard 
-              username="DemoUser"
-              email="demo@example.com"
+              username={userData.username}
+              email={userData.email}
               joinDate="April 1, 2025"
               complaintsSubmitted={5}
             />

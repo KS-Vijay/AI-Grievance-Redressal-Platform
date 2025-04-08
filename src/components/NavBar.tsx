@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,12 +47,34 @@ const Logo = () => (
 );
 
 const ProfileMenu = () => {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState<{ username: string } | null>(null);
+  
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        setUserData(JSON.parse(user));
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
+    }
+  }, []);
+  
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    toast.success('Logged out successfully');
+    navigate('/');
+  };
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full ml-2 hover:bg-background/20">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-teal/20 text-teal">DU</AvatarFallback>
+            <AvatarFallback className="bg-teal/20 text-teal">
+              {userData?.username ? userData.username.substring(0, 2).toUpperCase() : 'DU'}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -70,10 +93,9 @@ const ProfileMenu = () => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/" className="cursor-pointer w-full text-destructive">
-            Logout
-          </Link>
+        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Logout</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -88,7 +110,7 @@ const NavBar = ({ isDarkMode }: NavBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const location = useLocation();
-  const isLoggedIn = location.pathname === '/dashboard'; // Consider user logged in if on dashboard
+  const isLoggedIn = !!localStorage.getItem('user'); // Check if user is logged in
   const isDashboard = location.pathname === '/dashboard';
   
   return (

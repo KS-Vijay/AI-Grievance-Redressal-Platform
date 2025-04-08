@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,23 +13,61 @@ interface AuthFormProps {
 
 const AuthForm = ({ formType }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
   
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      
+    try {
       if (formType === 'signin') {
-        toast.success('Welcome back!');
-        window.location.href = '/dashboard';
+        // Login logic
+        const response = await fetch('http://localhost:8000/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+          // Store user info in localStorage
+          localStorage.setItem('user', JSON.stringify(data.user));
+          toast.success('Welcome back!');
+          navigate('/dashboard');
+        } else {
+          toast.error(data.message || 'Login failed');
+        }
       } else {
-        toast.success('Account created successfully!');
-        window.location.href = '/dashboard';
+        // Registration logic
+        const response = await fetch('http://localhost:8000/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, email, password }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          toast.success('Account created successfully!');
+          navigate('/signin');
+        } else {
+          toast.error(data.detail || 'Registration failed');
+        }
       }
-    }, 1500);
+    } catch (error) {
+      console.error('Auth error:', error);
+      toast.error('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -51,6 +89,8 @@ const AuthForm = ({ formType }: AuthFormProps) => {
                 placeholder="Enter your username"
                 required
                 className="bg-background/50 focus:ring-2 focus:ring-teal transition-all"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
           )}
@@ -65,6 +105,8 @@ const AuthForm = ({ formType }: AuthFormProps) => {
               placeholder="Enter your email"
               required
               className="bg-background/50 focus:ring-2 focus:ring-teal transition-all"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           
@@ -89,6 +131,8 @@ const AuthForm = ({ formType }: AuthFormProps) => {
               placeholder="Enter your password"
               required
               className="bg-background/50 focus:ring-2 focus:ring-teal transition-all"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           

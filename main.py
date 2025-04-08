@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware  # Add this
 from pydantic import BaseModel
@@ -7,13 +8,22 @@ import uvicorn
 import time
 import random
 import string
+import json
+import os
+
+# Create data directory if it doesn't exist
+os.makedirs("data", exist_ok=True)
+
+# Initialize complaints file if it doesn't exist
+if not os.path.exists("data/complaints.json"):
+    with open("data/complaints.json", "w") as f:
+        json.dump({"complaints": []}, f)
 
 app = FastAPI()
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    #allow_origins=["http://localhost:3000","http://localhost:8080","http://localhost:5173"],  # React default
     allow_methods=["*"],
     allow_headers=["*"],
     allow_origins=["*"]
@@ -38,7 +48,25 @@ class Complaint(BaseModel):
     text: str
     category: str
 
+class User(BaseModel):
+    username: str
+    email: str
+    password: str
+
 complaints_store = {}
+
+def load_complaints():
+    try:
+        with open("data/complaints.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"complaints": []}
+
+def save_complaint(complaint_data):
+    data = load_complaints()
+    data["complaints"].append(complaint_data)
+    with open("data/complaints.json", "w") as f:
+        json.dump(data, f, indent=2)
 
 def predict(model, tokenizer, text):
     inputs = tokenizer(text, return_tensors="pt").to(device)
@@ -73,7 +101,8 @@ async def submit_complaint(complaint: Complaint):
     urgency = predict(urgency_model, bert_tokenizer, complaint.text)
     fraud = predict(fraud_model, bert_tokenizer, complaint.text)
     response = generate_response(complaint_id, complaint.category, complaint.text, sentiment, urgency, fraud)
-    complaints_store[complaint_id] = {
+    
+    complaint_data = {
         "complaint_id": complaint_id,
         "category": complaint.category,
         "complaint": complaint.text,
@@ -83,6 +112,21 @@ async def submit_complaint(complaint: Complaint):
         "response": response,
         "timestamp": time.time()
     }
+    
+    complaints_store[complaint_id] = complaint_data
+    
+    # Save to JSON file
+    save_complaint({
+        "complaint_id": complaint_id,
+        "category": complaint.category,
+        "complaint": complaint.text,
+        "sentiment": ["positive", "negative", "neutral"][sentiment],
+        "urgency": ["high", "low"][urgency],
+        "fraud": ["fraud", "legit"][fraud],
+        "response": response,
+        "timestamp": time.time()
+    })
+    
     return {"complaint_id": complaint_id, "message": "Complaint submitted, processing..."}
 
 @app.get("/get-response/{complaint_id}")
@@ -101,6 +145,57 @@ async def get_response(complaint_id: str):
         "urgency": ["high", "low"][data["urgency"]],
         "fraud": ["fraud", "legit"][data["fraud"]]
     }
+
+# User management endpoints
+@app.post("/register")
+async def register_user(user: User):
+    try:
+        # Load existing users
+        with open("data/users.json", "r") as f:
+            data = json.load(f)
+        
+        # Check if email already exists
+        for existing_user in data["users"]:
+            if existing_user["email"] == user.email:
+                raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Add new user
+        data["users"].append({
+            "username": user.username,
+            "email": user.email,
+            "password": user.password  # In a real app, hash this password!
+        })
+        
+        # Save updated users
+        with open("data/users.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"message": "User registered successfully"}
+    
+    except FileNotFoundError:
+        # Create users file if it doesn't exist
+        with open("data/users.json", "w") as f:
+            json.dump({"users": [{
+                "username": user.username,
+                "email": user.email,
+                "password": user.password
+            }]}, f, indent=2)
+        return {"message": "User registered successfully"}
+
+@app.post("/login")
+async def login_user(user: dict):
+    try:
+        with open("data/users.json", "r") as f:
+            data = json.load(f)
+        
+        for existing_user in data["users"]:
+            if existing_user["email"] == user["email"] and existing_user["password"] == user["password"]:
+                return {"status": "success", "user": {"username": existing_user["username"], "email": existing_user["email"]}}
+        
+        return {"status": "error", "message": "Invalid credentials"}
+    
+    except FileNotFoundError:
+        return {"status": "error", "message": "No users found. Please sign up first."}
 
 @app.get("/health")
 async def health_check():
