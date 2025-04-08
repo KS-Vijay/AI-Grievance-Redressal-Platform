@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import NavBar from '@/components/NavBar';
@@ -12,13 +13,11 @@ const Dashboard = () => {
   const { isDarkMode } = useTheme();
   const [complaintId, setComplaintId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [complaintId, setComplaintId] = useState<string | null>(null);
   const [hasNewResponse, setHasNewResponse] = useState(false);
   
   const handleComplaintSubmit = ({ complaint, category }: { complaint: string; category: string }) => {
     // This function is kept for backward compatibility
-    // The actual API call is now in ComplaintForm.tsx
-    setAiResponse(null);
+    setIsProcessing(true);
     
     // We'll fetch the response data after we know the backend is done processing
     setTimeout(async () => {
@@ -30,13 +29,12 @@ const Dashboard = () => {
             throw new Error('Failed to fetch response');
           }
           
-          const data = await response.json();
-          setAiResponse(data.response);
+          // The response is handled in ResponseDisplay component
+          setHasNewResponse(true);
         } catch (error) {
           console.error('Error fetching response:', error);
         } finally {
           setIsProcessing(false);
-          setHasNewResponse(true);
         }
       }
     }, 5000); // Match the backend delay
@@ -80,7 +78,6 @@ const Dashboard = () => {
               <ResponseDisplay 
                 complaintId={complaintId}
                 isLoading={isProcessing}
-                complaintId={complaintId}
               />
             </div>
             

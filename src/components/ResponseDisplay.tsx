@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import GlassmorphicCard from './GlassmorphicCard';
 import { X, Bell, CheckCircle2, AlertTriangle, RotateCw } from 'lucide-react';
@@ -16,19 +17,18 @@ interface ResponseData {
 }
 
 interface ResponseDisplayProps {
-  complaintId: string | null;  // Changed to complaintId to match App.tsx
+  complaintId: string | null; 
   isLoading: boolean;
-  complaintId: string | null;
 }
 
-const ResponseDisplay = ({ response, isLoading, complaintId }: ResponseDisplayProps) => {
+const ResponseDisplay = ({ complaintId, isLoading }: ResponseDisplayProps) => {
   const [progress, setProgress] = useState(0);
+  const [responseData, setResponseData] = useState<ResponseData | null>(null);
   
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (complaintId && !response) {
-      setIsLoading(true);
+    if (complaintId && !responseData) {
       setProgress(0);
       
       // Start progress animation (5 seconds = 5000ms, 100% in 50ms steps = 100 steps)
@@ -50,10 +50,10 @@ const ResponseDisplay = ({ response, isLoading, complaintId }: ResponseDisplayPr
             throw new Error(`HTTP error! status: ${res.status}`);
           }
           const data = await res.json();
-          setResponse(data);
+          setResponseData(data);
         } catch (error) {
           console.error("Error fetching response:", error);
-          setResponse({
+          setResponseData({
             complaint_id: complaintId,
             category: "Unknown",
             complaint: "Error fetching complaint",
@@ -63,7 +63,6 @@ const ResponseDisplay = ({ response, isLoading, complaintId }: ResponseDisplayPr
             fraud: "N/A"
           });
         } finally {
-          setIsLoading(false);
           clearInterval(interval);
           setProgress(100);
         }
@@ -82,13 +81,13 @@ const ResponseDisplay = ({ response, isLoading, complaintId }: ResponseDisplayPr
           <div className="flex items-center gap-2">
             <h3 className="text-xl font-bold">Notifications</h3>
             <Badge variant="outline" className="bg-coral/10 text-coral animate-pulse">
-              {isLoading ? 'Processing' : response ? 'New' : 'No updates'}
+              {isLoading ? 'Processing' : responseData ? 'New' : 'No updates'}
             </Badge>
           </div>
         </div>
         
         <div className="flex-1 flex items-center justify-center">
-          {!response && !isLoading && !complaintId ? (
+          {!responseData && !isLoading && !complaintId ? (
             <div className="text-center space-y-4 py-6">
               <Bell className="mx-auto h-16 w-16 text-foreground/30 animate-float" />
               <div>
@@ -160,10 +159,10 @@ const ResponseDisplay = ({ response, isLoading, complaintId }: ResponseDisplayPr
                 )}
                 
                 <h4 className="text-base font-medium mt-3 mb-2">Grievance Response</h4>
-                <p className="text-foreground text-sm whitespace-pre-line">{response?.response}</p>
-                <p className="text-foreground text-sm mt-2"><strong>Sentiment:</strong> {response?.sentiment}</p>
-                <p className="text-foreground text-sm"><strong>Urgency:</strong> {response?.urgency}</p>
-                <p className="text-foreground text-sm"><strong>Fraud:</strong> {response?.fraud}</p>
+                <p className="text-foreground text-sm whitespace-pre-line">{responseData?.response}</p>
+                <p className="text-foreground text-sm mt-2"><strong>Sentiment:</strong> {responseData?.sentiment}</p>
+                <p className="text-foreground text-sm"><strong>Urgency:</strong> {responseData?.urgency}</p>
+                <p className="text-foreground text-sm"><strong>Fraud:</strong> {responseData?.fraud}</p>
               </div>
             </div>
           )}
