@@ -1,0 +1,333 @@
+[33mcommit 4af780cfeccb76d8da5def6a2448acd59f021904[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m
+Author: vijay <ksvijay2k5@gmail.com>
+Date:   Tue Apr 8 21:15:51 2025 +0530
+
+    Updating changes
+
+ src/pages/Dashboard.tsx | 4 [31m----[m
+ 1 file changed, 4 deletions(-)
+
+[33mcommit fd3df303c032a2a424169032e1c9ae5da801496e[m
+Author: vijay <ksvijay2k5@gmail.com>
+Date:   Tue Apr 8 20:59:43 2025 +0530
+
+    Adding files
+
+ fraud_model/config.json                 |     26 [31m-[m
+ fraud_model/special_tokens_map.json     |      7 [31m-[m
+ fraud_model/tokenizer.json              |  30672 [31m----[m
+ fraud_model/tokenizer_config.json       |     56 [31m-[m
+ fraud_model/vocab.txt                   |  30522 [31m----[m
+ response_model/config.json              |     47 [31m-[m
+ response_model/generation_config.json   |      6 [31m-[m
+ response_model/merges.txt               |  50001 [31m------[m
+ response_model/special_tokens_map.json  |      6 [31m-[m
+ response_model/tokenizer.json           | 250320 [31m-----------------------------[m
+ response_model/tokenizer_config.json    |     21 [31m-[m
+ response_model/vocab.json               |      1 [31m-[m
+ sentiment_model/config.json             |     36 [31m-[m
+ sentiment_model/special_tokens_map.json |      7 [31m-[m
+ sentiment_model/tokenizer.json          |  30672 [31m----[m
+ sentiment_model/tokenizer_config.json   |     56 [31m-[m
+ sentiment_model/vocab.txt               |  30522 [31m----[m
+ urgency_model/config.json               |     26 [31m-[m
+ urgency_model/special_tokens_map.json   |      7 [31m-[m
+ urgency_model/tokenizer.json            |  30672 [31m----[m
+ urgency_model/tokenizer_config.json     |     56 [31m-[m
+ urgency_model/vocab.txt                 |  30522 [31m----[m
+ 22 files changed, 484261 deletions(-)
+
+[33mcommit b701db4fb22af28405ee10a609bffa2c6ae91118[m
+Author: vijay <ksvijay2k5@gmail.com>
+Date:   Tue Apr 8 20:38:02 2025 +0530
+
+    Push everything except large model files
+
+ .gitignore                         | 1 [32m+[m
+ src/components/ResponseDisplay.tsx | 6 [31m------[m
+ 2 files changed, 1 insertion(+), 6 deletions(-)
+
+[33mcommit bc7272d5c729ba7db32f99e13104a5898fb02d35[m
+Merge: 8b98bfd a396935
+Author: vijay <ksvijay2k5@gmail.com>
+Date:   Tue Apr 8 20:20:37 2025 +0530
+
+    Resolved merge conflicts and completed pull
+
+[33mcommit 8b98bfd09d93d637f8a0c0bf3625c79285da46b8[m
+Author: vijay <ksvijay2k5@gmail.com>
+Date:   Tue Apr 8 18:08:31 2025 +0530
+
+    Saving local changes
+
+ .gitignore | 11 [32m+++++++++++[m
+ 1 file changed, 11 insertions(+)
+
+[33mcommit a396935d9ab3221dad09f7256a41cf0e6a57ceea[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Tue Apr 8 11:55:43 2025 +0000
+
+    feat: Integrate frontend with FastAPI backend
+    
+    - Updated ComplaintForm.tsx to submit complaints to the FastAPI backend at http://localhost:8000/submit-complaint.
+    - Implemented error and success toast notifications using sonner.
+    - Modified ResponseDisplay.tsx to display the complaint_id received from the backend.
+    - Updated Dashboard.tsx to pass complaintId and isProcessing states.
+    - Ensured CORS configuration in main.py allows requests from http://localhost:8080.
+    - Updated types and interfaces to match the backend response.
+
+ src/components/ComplaintForm.tsx   | 36 [32m+++++++++++++++++++++[m[31m-----[m
+ src/components/ResponseDisplay.tsx | 13 [32m++++++++[m[31m--[m
+ src/pages/Dashboard.tsx            | 52 [32m++++++++++++++++++++[m[31m------------------[m
+ 3 files changed, 69 insertions(+), 32 deletions(-)
+
+[33mcommit fbb683c1a385a7d9dd6f60e397d560b3b6e21484[m
+Author: vijay <ksvijay2k5@gmail.com>
+Date:   Tue Apr 8 10:59:57 2025 +0530
+
+    Uploaded ML models
+
+ .gitignore                              |      2 [32m+[m
+ fraud_model/config.json                 |     26 [32m+[m
+ fraud_model/special_tokens_map.json     |      7 [32m+[m
+ fraud_model/tokenizer.json              |  30672 [32m++++[m
+ fraud_model/tokenizer_config.json       |     56 [32m+[m
+ fraud_model/vocab.txt                   |  30522 [32m++++[m
+ main.py                                 |    110 [32m+[m
+ package-lock.json                       |    118 [32m+[m[31m-[m
+ preprocess.py                           |    151 [32m+[m
+ response_model/config.json              |     47 [32m+[m
+ response_model/generation_config.json   |      6 [32m+[m
+ response_model/merges.txt               |  50001 [32m++++++[m
+ response_model/special_tokens_map.json  |      6 [32m+[m
+ response_model/tokenizer.json           | 250320 [32m+++++++++++++++++++++++++++++[m
+ response_model/tokenizer_config.json    |     21 [32m+[m
+ response_model/vocab.json               |      1 [32m+[m
+ sentiment_model/config.json             |     36 [32m+[m
+ sentiment_model/special_tokens_map.json |      7 [32m+[m
+ sentiment_model/tokenizer.json          |  30672 [32m++++[m
+ sentiment_model/tokenizer_config.json   |     56 [32m+[m
+ sentiment_model/vocab.txt               |  30522 [32m++++[m
+ src/components/ComplaintForm.tsx        |     35 [32m+[m[31m-[m
+ src/components/ResponseDisplay.tsx      |     60 [32m+[m[31m-[m
+ src/pages/Dashboard.tsx                 |     40 [32m+[m[31m-[m
+ synthetic_complaints.csv                |  30001 [32m++++[m
+ tokenizer.py                            |      4 [32m+[m
+ train_step2.py                          |    149 [32m+[m
+ urgency_model/config.json               |     26 [32m+[m
+ urgency_model/special_tokens_map.json   |      7 [32m+[m
+ urgency_model/tokenizer.json            |  30672 [32m++++[m
+ urgency_model/tokenizer_config.json     |     56 [32m+[m
+ urgency_model/vocab.txt                 |  30522 [32m++++[m
+ 32 files changed, 514766 insertions(+), 165 deletions(-)
+
+[33mcommit 011bab82d2b01c8b636a59c63870a3450ffb3e0d[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sun Apr 6 07:10:46 2025 +0000
+
+    Fix: ThemeContext and NavBar props
+    
+    The `toggleDarkMode` function was not correctly passed to the `NavBar` component and was missing from the `ThemeContextType` interface. This commit fixes the type errors by ensuring the `toggleDarkMode` function is available in the `ThemeContext` and is correctly passed as a prop to the `NavBar` component.
+
+ src/pages/Index.tsx   | 4 [32m++[m[31m--[m
+ src/pages/Profile.tsx | 4 [32m++[m[31m--[m
+ src/pages/SignIn.tsx  | 4 [32m++[m[31m--[m
+ src/pages/SignUp.tsx  | 4 [32m++[m[31m--[m
+ 4 files changed, 8 insertions(+), 8 deletions(-)
+
+[33mcommit 695159fb4fa6c02dd21957b73d4ba50f28f8058e[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sun Apr 6 07:08:38 2025 +0000
+
+    Remove dark mode and adjust theme colors
+    
+    - Removed dark mode functionality.
+    - Adjusted theme colors to be darker.
+    - Modified navigation bar on the dashboard to remove the "Home" link and only include the logout option.
+
+ src/components/NavBar.tsx    | 33 [32m++++++[m[31m-----------------[m
+ src/context/ThemeContext.tsx | 43 [32m++++[m[31m-------------------------[m
+ src/index.css                | 64 [32m+++++++++[m[31m-----------------------------------[m
+ src/pages/Dashboard.tsx      |  4 [32m+[m[31m--[m
+ 4 files changed, 27 insertions(+), 117 deletions(-)
+
+[33mcommit e6658a4dacbfff2fc2938e6cf6df31e0af835efa[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sat Apr 5 22:44:28 2025 +0000
+
+    Fix: Dashboard layout and theme toggle
+    
+    - Reorganized the dashboard layout to place the notification section below the complaint submission section.
+    - Adjusted the analytics section to span the combined height of the complaint submission and notification sections.
+    - Darkened the background and reduced the glow effect of the legal chat bot.
+    - Fixed the theme toggle functionality to correctly switch between light and dark themes.
+
+ src/components/LegalChatBot.tsx    |  6 [32m+++[m[31m---[m
+ src/components/ResponseDisplay.tsx | 31 [32m++++++++++++++++++++[m[31m-----------[m
+ src/context/ThemeContext.tsx       | 38 [32m++++++++++++++++++++++++++++[m[31m----------[m
+ src/pages/Dashboard.tsx            | 24 [32m++++++[m[31m------------------[m
+ 4 files changed, 57 insertions(+), 42 deletions(-)
+
+[33mcommit e78fd05f909b6c3c45e17514777a7e300ff7ccd9[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sat Apr 5 22:34:26 2025 +0000
+
+    Refactor: Improve dashboard layout and notification display
+    
+    - Improved the layout of the dashboard to utilize space more effectively.
+    - Enhanced the notification button to display processing status and responses with animations.
+    - Implemented a "no complaints submitted" message when no complaints are present.
+
+ src/components/ResponseDisplay.tsx | 71 [32m+++++++++++++++++++++++++[m[31m--------[m
+ src/pages/Dashboard.tsx            | 80 [32m++++++++++++++[m[31m------------------------[m
+ 2 files changed, 85 insertions(+), 66 deletions(-)
+
+[33mcommit 1052b9e5d2341104fe4bf61495d9ca4631950a34[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sat Apr 5 22:23:48 2025 +0000
+
+    Refactor: Enhance dashboard layout and features
+    
+    - Implement background effects and theming similar to the home page.
+    - Integrate a notification-style response section.
+    - Add user profile section with backend integration.
+    - Adjust analytics section size.
+
+ src/App.tsx                         |   2 [32m+[m
+ src/components/AnalyticsDisplay.tsx | 100 [32m+++++++++++++++++[m[31m--[m
+ src/components/NavBar.tsx           |  51 [32m+++++++++[m[31m-[m
+ src/components/ResponseDisplay.tsx  |  21 [32m++[m[31m--[m
+ src/components/ui/dropdown-menu.tsx |   1 [32m+[m
+ src/components/ui/input.tsx         |   8 [32m+[m[31m-[m
+ src/components/ui/label.tsx         |   1 [32m+[m
+ src/components/ui/textarea.tsx      |   1 [32m+[m
+ src/pages/Dashboard.tsx             |  74 [32m+++++++++++[m[31m---[m
+ src/pages/Profile.tsx               | 188 [32m++++++++++++++++++++++++++++++++++++[m
+ 10 files changed, 417 insertions(+), 30 deletions(-)
+
+[33mcommit c57b8dbc66fa42ff562f0cee10582b49121857c0[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sat Apr 5 22:07:18 2025 +0000
+
+    Refactor: Dashboard route access
+    
+    Restrict access to the dashboard route to logged-in users.
+
+ src/components/NavBar.tsx | 24 [32m++++++++++++++++++[m[31m------[m
+ 1 file changed, 18 insertions(+), 6 deletions(-)
+
+[33mcommit 007c252730966c796d9974dbf9682fab1f829a26[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sat Apr 5 22:02:47 2025 +0000
+
+    feat: Implement AI Grievance Platform UI
+    
+    This commit implements the user interface for the AI Grievance Redressal Platform for Startups. It includes the landing page, sign-up/sign-in pages, dashboard, and additional features as described in the prompt. The UI is designed with a modern color scheme, 3D elements, animations, and futuristic effects.
+
+ package-lock.json                    | 125 [32m+++++++++++++++++++++++[m[31m-[m
+ package.json                         |   1 [32m+[m
+ src/App.tsx                          |  31 [32m+++[m[31m---[m
+ src/components/AnalyticsDisplay.tsx  | 134 [32m++++++++++++++++++++++++++[m
+ src/components/AuthForm.tsx          | 134 [32m++++++++++++++++++++++++++[m
+ src/components/ComplaintForm.tsx     | 104 [32m++++++++++++++++++++[m
+ src/components/Footer.tsx            |  62 [32m++++++++++++[m
+ src/components/GlassmorphicCard.tsx  |  34 [32m+++++++[m
+ src/components/HeroSection.tsx       |  64 [32m+++++++++++++[m
+ src/components/LegalChatBot.tsx      | 162 [32m+++++++++++++++++++++++++++++++[m
+ src/components/NavBar.tsx            | 103 [32m++++++++++++++++++++[m
+ src/components/ProfileCard.tsx       |  59 [32m++++++++++++[m
+ src/components/ResponseDisplay.tsx   |  68 [32m+++++++++++++[m
+ src/components/ThreeDCard.tsx        |  81 [32m++++++++++++++++[m
+ src/components/ThreeJSBackground.tsx | 124 [32m++++++++++++++++++++++++[m
+ src/context/ThemeContext.tsx         |  51 [32m++++++++++[m
+ src/index.css                        | 180 [32m+++++++++++++++++++++++[m[31m------------[m
+ src/pages/Dashboard.tsx              |  83 [32m++++++++++++++++[m
+ src/pages/Index.tsx                  |  35 [32m+++++[m[31m--[m
+ src/pages/SignIn.tsx                 |  27 [32m++++++[m
+ src/pages/SignUp.tsx                 |  27 [32m++++++[m
+ tailwind.config.ts                   |  56 [32m++++++++[m[31m---[m
+ 22 files changed, 1649 insertions(+), 96 deletions(-)
+
+[33mcommit 7fd3e9785c69eb2832193865a99670c47de9388b[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sat Apr 5 21:57:17 2025 +0000
+
+    Use tech stack vite_react_shadcn_ts
+
+ .gitignore                            |   24 [32m+[m
+ README.md                             |   73 [32m+[m
+ bun.lockb                             |  Bin [31m0[m -> [32m198351[m bytes
+ components.json                       |   20 [32m+[m
+ eslint.config.js                      |   29 [32m+[m
+ index.html                            |   26 [32m+[m
+ package-lock.json                     | 7108 [32m+++++++++++++++++++++++++++++++++[m
+ package.json                          |   83 [32m+[m
+ postcss.config.js                     |    6 [32m+[m
+ public/favicon.ico                    |  Bin [31m0[m -> [32m1150[m bytes
+ public/placeholder.svg                |    1 [32m+[m
+ public/robots.txt                     |   14 [32m+[m
+ src/App.css                           |   42 [32m+[m
+ src/App.tsx                           |   27 [32m+[m
+ src/components/ui/accordion.tsx       |   56 [32m+[m
+ src/components/ui/alert-dialog.tsx    |  139 [32m+[m
+ src/components/ui/alert.tsx           |   59 [32m+[m
+ src/components/ui/aspect-ratio.tsx    |    5 [32m+[m
+ src/components/ui/avatar.tsx          |   48 [32m+[m
+ src/components/ui/badge.tsx           |   36 [32m+[m
+ src/components/ui/breadcrumb.tsx      |  115 [32m+[m
+ src/components/ui/button.tsx          |   56 [32m+[m
+ src/components/ui/calendar.tsx        |   64 [32m+[m
+ src/components/ui/card.tsx            |   79 [32m+[m
+ src/components/ui/carousel.tsx        |  260 [32m++[m
+ src/components/ui/chart.tsx           |  363 [32m++[m
+ src/components/ui/checkbox.tsx        |   28 [32m+[m
+ src/components/ui/collapsible.tsx     |    9 [32m+[m
+ src/components/ui/command.tsx         |  153 [32m+[m
+ src/components/ui/context-menu.tsx    |  198 [32m+[m
+ src/components/ui/dialog.tsx          |  120 [32m+[m
+ src/components/ui/drawer.tsx          |  116 [32m+[m
+ src/components/ui/dropdown-menu.tsx   |  198 [32m+[m
+ src/components/ui/form.tsx            |  176 [32m+[m
+ src/components/ui/hover-card.tsx      |   27 [32m+[m
+ src/components/ui/input-otp.tsx       |   69 [32m+[m
+ src/components/ui/input.tsx           |   22 [32m+[m
+ src/components/ui/label.tsx           |   24 [32m+[m
+ src/components/ui/menubar.tsx         |  234 [32m++[m
+ src/components/ui/navigation-menu.tsx |  128 [32m+[m
+ src/components/ui/pagination.tsx      |  117 [32m+[m
+ src/components/ui/popover.tsx         |   29 [32m+[m
+ src/components/ui/progress.tsx        |   26 [32m+[m
+ src/components/ui/radio-group.tsx     |   42 [32m+[m
+ src/components/ui/resizable.tsx       |   43 [32m+[m
+ src/components/ui/scroll-area.tsx     |   46 [32m+[m
+ src/components/ui/select.tsx          |  158 [32m+[m
+ src/components/ui/separator.tsx       |   29 [32m+[m
+ src/components/ui/sheet.tsx           |  131 [32m+[m
+ src/components/ui/sidebar.tsx         |  761 [32m++++[m
+ src/components/ui/skeleton.tsx        |   15 [32m+[m
+ src/components/ui/slider.tsx          |   26 [32m+[m
+ src/components/ui/sonner.tsx          |   29 [32m+[m
+ src/components/ui/switch.tsx          |   27 [32m+[m
+ src/components/ui/table.tsx           |  117 [32m+[m
+ src/components/ui/tabs.tsx            |   53 [32m+[m
+ src/components/ui/textarea.tsx        |   24 [32m+[m
+ src/components/ui/toast.tsx           |  127 [32m+[m
+ src/components/ui/toaster.tsx         |   33 [32m+[m
+ src/components/ui/toggle-group.tsx    |   59 [32m+[m
+ src/components/ui/toggle.tsx          |   43 [32m+[m
+ src/components/ui/tooltip.tsx         |   28 [32m+[m
+ src/components/ui/use-toast.ts        |    3 [32m+[m
+ src/hooks/use-mobile.tsx              |   19 [32m+[m
+ src/hooks/use-toast.ts                |  191 [32m+[m
+ src/index.css                         |  101 [32m+[m
+ src/lib/utils.ts                      |    6 [32m+[m
+ src/main.tsx                          |    5 [32m+[m
+ src/pages/Index.tsx                   |   14 [32m+[m
+ src/pages/NotFound.tsx                |   27 [32m+[m
+ src/vite-env.d.ts                     |    1 [32m+[m
+ tailwind.config.ts                    |   96 [32m+[m
+ tsconfig.app.json                     |   30 [32m+[m
+ tsconfig.json                         |   19 [32m+[m
+ tsconfig.node.json                    |   22 [32m+[m
+ vite.config.ts                        |   22 [32m+[m
+ 76 files changed, 12754 insertions(+)

@@ -1,0 +1,44 @@
+{
+  "complaints": [
+    {
+      "complaint_id": "AIGV00001A",
+      "category": "employee",
+      "complaint": "ramesh from your side is spamming me mails",
+      "sentiment": "neutral",
+      "urgency": "low",
+      "fraud": "fraud",
+      "response": "ernyel noted; email proof to support@startupgrievance.com.",
+      "timestamp": 1744136060.169733
+    },
+    {
+      "complaint_id": "AIGV00001G",
+      "category": "payment",
+      "complaint": "I have been charged 500 extra",
+      "sentiment": "neutral",
+      "urgency": "low",
+      "fraud": "legit",
+      "response": "urny: Sorry for the low charge; we're resolving it now.",
+      "timestamp": 1744137176.8702626
+    },
+    {
+      "complaint_id": "AIGV00001N",
+      "category": "product",
+      "complaint": "my favourite product got damaged, poor handling",
+      "sentiment": "neutral",
+      "urgency": "high",
+      "fraud": "legit",
+      "response": "ids; our team is on it.",
+      "timestamp": 1744229304.4342089
+    },
+    {
+      "complaint_id": "AIGV00001Q",
+      "category": "product",
+      "complaint": "my favourite product i ordered is damaged, poor handling from delivery",
+      "sentiment": "positive",
+      "urgency": "low",
+      "fraud": "legit",
+      "response": "________________________________________________________________",
+      "timestamp": 1744269772.709815
+    }
+  ]
+}
