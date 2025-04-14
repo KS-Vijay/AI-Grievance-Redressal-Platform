@@ -12,6 +12,7 @@ import LegalChatBot from '@/components/LegalChatBot';
 import ThreeJSBackground from '@/components/ThreeJSBackground';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import BackgroundPattern from '@/components/BackgroundPattern';
 
 const Dashboard = () => {
   const { isDarkMode } = useTheme();
@@ -42,22 +43,10 @@ const Dashboard = () => {
     let timer: NodeJS.Timeout;
     
     if (complaintId && isProcessing) {
-      timer = setTimeout(async () => {
-        try {
-          const response = await fetch(`http://localhost:8000/get-response/${complaintId}`);
-          
-          if (!response.ok) {
-            throw new Error('Failed to fetch response');
-          }
-          
-          // Mark that we have a new response
-          setHasNewResponse(true);
-          setIsProcessing(false);
-        } catch (error) {
-          console.error('Error fetching response:', error);
-          setIsProcessing(false);
-        }
-      }, 5000); // Match the backend delay
+      timer = setTimeout(() => {
+        setHasNewResponse(true);
+        setIsProcessing(false);
+      }, 3500); // Shorter delay for better user experience
     }
     
     return () => {
@@ -71,6 +60,7 @@ const Dashboard = () => {
   
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <BackgroundPattern />
       <ThreeJSBackground className="opacity-10" />
       <div className="absolute inset-0 backdrop-blur-sm z-0"></div>
       

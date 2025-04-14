@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import GlassmorphicCard from './GlassmorphicCard';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { RefreshCcw, TrendingUp, AlertCircle, CheckCircle2, Shield, Clock8 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -82,6 +82,27 @@ const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: Analyti
     return Object.entries(data).map(([name, value]) => ({ name, value }));
   };
 
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius * 1.2;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="#555" 
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        fontSize={12}
+        fontWeight={500}
+      >
+        {name} ({(percent * 100).toFixed(0)}%)
+      </text>
+    );
+  };
+
   if (loading && !analytics) {
     return (
       <GlassmorphicCard className="p-6">
@@ -146,18 +167,18 @@ const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: Analyti
             </div>
 
             <h4 className="text-lg font-medium mb-4">Monthly Complaints</h4>
-            <div className="h-[200px] w-full bg-background/10 rounded-lg p-4">
+            <div className="h-[240px] w-full bg-background/10 rounded-lg p-4">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
-                  <YAxis stroke="rgba(255,255,255,0.5)" />
+                <BarChart data={monthlyData} margin={{ top: 5, right: 20, bottom: 25, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+                  <XAxis dataKey="name" stroke="rgba(0,0,0,0.6)" fontSize={12} tickMargin={10} />
+                  <YAxis stroke="rgba(0,0,0,0.6)" fontSize={12} />
                   <Tooltip 
                     contentStyle={{
-                      backgroundColor: 'rgba(30, 42, 68, 0.8)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
                       borderColor: '#2DD4BF',
                       borderRadius: '8px',
-                      color: 'white'
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                     }} 
                   />
                   <Bar dataKey="count" fill="#2DD4BF" radius={[4, 4, 0, 0]} />
@@ -194,7 +215,7 @@ const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: Analyti
             </div>
 
             <h4 className="text-lg font-medium mb-4">Categories</h4>
-            <div className="h-[200px] bg-background/10 rounded-lg p-4">
+            <div className="h-[240px] bg-background/10 rounded-lg p-4">
               {categoryData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -205,7 +226,8 @@ const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: Analyti
                       outerRadius={80}
                       dataKey="value"
                       nameKey="name"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
                     >
                       {categoryData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={defaultColors[index % defaultColors.length]} />
@@ -214,10 +236,10 @@ const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: Analyti
                     <Tooltip 
                       formatter={(value) => [value, 'Count']}
                       contentStyle={{
-                        backgroundColor: 'rgba(30, 42, 68, 0.8)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
                         borderColor: '#2DD4BF',
                         borderRadius: '8px',
-                        color: 'white'
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                       }}
                     />
                   </PieChart>
@@ -230,7 +252,7 @@ const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: Analyti
             </div>
 
             <h4 className="text-lg font-medium mb-4 mt-6">Sentiment Analysis</h4>
-            <div className="h-[200px] bg-background/10 rounded-lg p-4">
+            <div className="h-[240px] bg-background/10 rounded-lg p-4">
               {sentimentData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -241,7 +263,8 @@ const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: Analyti
                       outerRadius={80}
                       dataKey="value"
                       nameKey="name"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
                     >
                       {sentimentData.map((entry, index) => {
                         const color = entry.name.toLowerCase() === 'positive' 
@@ -255,10 +278,10 @@ const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: Analyti
                     <Tooltip 
                       formatter={(value) => [value, 'Count']}
                       contentStyle={{
-                        backgroundColor: 'rgba(30, 42, 68, 0.8)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
                         borderColor: '#2DD4BF',
                         borderRadius: '8px',
-                        color: 'white'
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                       }}
                     />
                   </PieChart>
