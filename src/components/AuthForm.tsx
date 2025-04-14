@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,10 +8,25 @@ import GlassmorphicCard from './GlassmorphicCard';
 
 interface AuthFormProps {
   formType: 'signin' | 'signup';
+  onSubmit?: (data: { username: string; email: string; password: string }) => void;
+  isSubmitting?: boolean;
+  additionalFields?: Array<{
+    id: string;
+    label: string;
+    type: string;
+    placeholder: string;
+    required: boolean;
+  }>;
+  footerText?: React.ReactNode;
 }
 
-const AuthForm = ({ formType }: AuthFormProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+const AuthForm = ({ 
+  formType, 
+  onSubmit,
+  isSubmitting = false,
+  additionalFields = [],
+  footerText 
+}: AuthFormProps) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,55 +34,65 @@ const AuthForm = ({ formType }: AuthFormProps) => {
   
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    try {
-      if (formType === 'signin') {
-        // Login logic
-        const response = await fetch('http://localhost:8000/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        });
-        
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-          // Store user info in localStorage
-          localStorage.setItem('user', JSON.stringify(data.user));
-          toast.success('Welcome back!');
-          navigate('/dashboard');
+    if (onSubmit) {
+      onSubmit({ username, email, password });
+    } else {
+      // Default fallback logic if no onSubmit is provided
+      setIsLoading(true);
+      
+      try {
+        if (formType === 'signin') {
+          // Login logic
+          const response = await fetch('http://localhost:8000/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+          });
+          
+          const data = await response.json();
+          
+          if (data.status === 'success') {
+            // Store user info in localStorage
+            localStorage.setItem('user', JSON.stringify(data.user));
+            toast.success('Welcome back!');
+            navigate('/dashboard');
+          } else {
+            toast.error(data.message || 'Login failed');
+          }
         } else {
-          toast.error(data.message || 'Login failed');
+          // Registration logic
+          const response = await fetch('http://localhost:8000/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, email, password }),
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            toast.success('Account created successfully!');
+            navigate('/signin');
+          } else {
+            toast.error(data.detail || 'Registration failed');
+          }
         }
-      } else {
-        // Registration logic
-        const response = await fetch('http://localhost:8000/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, email, password }),
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          toast.success('Account created successfully!');
-          navigate('/signin');
-        } else {
-          toast.error(data.detail || 'Registration failed');
-        }
+      } catch (error) {
+        console.error('Auth error:', error);
+        toast.error('An error occurred. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Auth error:', error);
-      toast.error('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
+  
+  // Need to keep this state for backward compatibility
+  const [isLoading, setIsLoading] = useState(false);
+  const isButtonLoading = isSubmitting || isLoading;
   
   return (
     <GlassmorphicCard className="w-full max-w-md mx-auto">
@@ -78,7 +102,7 @@ const AuthForm = ({ formType }: AuthFormProps) => {
         </h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          {formType === 'signup' && (
+          {(formType === 'signup' || additionalFields.some(field => field.id === 'username')) && (
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium">
                 Username
@@ -139,9 +163,9 @@ const AuthForm = ({ formType }: AuthFormProps) => {
           <Button 
             type="submit"
             className="w-full py-5 bg-teal hover:bg-teal/90 mt-6 transition-all transform hover:-translate-y-1 hover:glow-teal"
-            disabled={isLoading}
+            disabled={isButtonLoading}
           >
-            {isLoading ? (
+            {isButtonLoading ? (
               <div className="flex items-center">
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -154,20 +178,22 @@ const AuthForm = ({ formType }: AuthFormProps) => {
         </form>
         
         <div className="mt-6 text-center text-sm">
-          {formType === 'signin' ? (
-            <p className="text-foreground/70">
-              Don't have an account?{' '}
-              <Link to="/signup" className="text-coral hover:text-coral/80 font-medium transition-colors">
-                Sign Up
-              </Link>
-            </p>
-          ) : (
-            <p className="text-foreground/70">
-              Already have an account?{' '}
-              <Link to="/signin" className="text-coral hover:text-coral/80 font-medium transition-colors">
-                Sign In
-              </Link>
-            </p>
+          {footerText ? footerText : (
+            formType === 'signin' ? (
+              <p className="text-foreground/70">
+                Don't have an account?{' '}
+                <Link to="/signup" className="text-coral hover:text-coral/80 font-medium transition-colors">
+                  Sign Up
+                </Link>
+              </p>
+            ) : (
+              <p className="text-foreground/70">
+                Already have an account?{' '}
+                <Link to="/signin" className="text-coral hover:text-coral/80 font-medium transition-colors">
+                  Sign In
+                </Link>
+              </p>
+            )
           )}
         </div>
       </div>
