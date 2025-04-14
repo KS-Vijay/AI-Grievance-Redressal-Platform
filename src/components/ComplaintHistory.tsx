@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileSearch, RefreshCcw, Info } from 'lucide-react';
+import { FileSearch, RefreshCcw, Info, X } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,

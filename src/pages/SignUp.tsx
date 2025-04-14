@@ -69,7 +69,7 @@ const SignUp = () => {
       
       <div className="flex-grow flex items-center justify-center p-6 relative z-10">
         <AuthForm 
-          type="signup"
+          formType="signup"
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           additionalFields={[
