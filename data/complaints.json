@@ -39,6 +39,26 @@
       "fraud": "legit",
       "response": "________________________________________________________________",
       "timestamp": 1744269772.709815
+    },
+    {
+      "complaint_id": "AIGV00001W",
+      "category": "product",
+      "complaint": "my product that i ordered last was completely damaged, very poor delivery management",
+      "sentiment": "negative",
+      "urgency": "low",
+      "fraud": "legit",
+      "response": "__________________",
+      "timestamp": 1744644034.3477988
+    },
+    {
+      "complaint_id": "AIGV00002W",
+      "category": "payment",
+      "complaint": "I was charged twice for my subscription. Please fix this.",
+      "sentiment": "negative",
+      "urgency": "low",
+      "fraud": "legit",
+      "response": "Thank you for bringing this financial matter to our attention. We take billing concerns seriously. Please email the transaction details to support@grievance.com, referencing complaint ID AIGV00002W. Our financial team will investigate this promptly.",
+      "timestamp": 1744644751.59177
     }
   ]
 }

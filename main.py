@@ -42,7 +42,7 @@ print(f"Using device: {device}")
 
 # Load scikit-learn models for classification
 try:
-    sentiment_model = joblib.load("./sentiment_model.joblib")
+    sentiment_model = joblib.load("./sentiment_model/sentiment_model.joblib")
     print("Loaded sentiment_model")
 except FileNotFoundError:
     print("sentiment_model not found, will use default distilbert")
@@ -50,14 +50,14 @@ except FileNotFoundError:
     sentiment_model = DistilBertForSequenceClassification.from_pretrained("./sentiment_model").to(device)
 
 try:
-    urgency_model = joblib.load("./urgency_model.joblib")
+    urgency_model = joblib.load("./urgency_model/urgency_model.joblib")
     print("Loaded urgency_model")
 except FileNotFoundError:
     print("urgency_model not found, will use default distilbert")
     urgency_model = DistilBertForSequenceClassification.from_pretrained("./urgency_model").to(device)
 
 try:
-    fraud_model = joblib.load("./fraud_model.joblib")
+    fraud_model = joblib.load("./fraud_model/fraud_model.joblib")
     print("Loaded fraud_model")
 except FileNotFoundError:
     print("fraud_model not found, will use default distilbert")
