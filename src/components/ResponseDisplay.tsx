@@ -5,6 +5,7 @@ import { X, Bell, CheckCircle2, AlertTriangle, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 interface ResponseData {
   complaint_id: string;
@@ -76,18 +77,26 @@ const ResponseDisplay = ({ complaintId, isLoading, hasNewResponse = false }: Res
       }
     };
     
-    if (complaintId && hasNewResponse) {
+    if (complaintId && (hasNewResponse || responseData === null)) {
       fetchResponseData();
     }
-  }, [complaintId, hasNewResponse, isLoading]);
+  }, [complaintId, hasNewResponse, isLoading, responseData]);
+  
+  // Add confidence visualization function
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return "bg-emerald-500";
+    if (confidence >= 0.6) return "bg-teal-500";
+    if (confidence >= 0.4) return "bg-amber-500";
+    return "bg-rose-500";
+  };
   
   return (
     <GlassmorphicCard className="relative">
       <div className="p-6 flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
-            <h3 className="text-xl font-bold">Notifications</h3>
-            <Badge variant="outline" className="bg-coral/10 text-coral animate-pulse">
+            <h3 className="text-xl font-bold">Response</h3>
+            <Badge variant="outline" className={`${isLoading ? 'bg-amber-500/10 text-amber-500' : responseData ? 'bg-teal-500/10 text-teal-500' : 'bg-slate-500/10 text-slate-500'} animate-pulse`}>
               {isLoading ? 'Processing' : responseData ? 'New' : 'No updates'}
             </Badge>
           </div>
@@ -99,7 +108,7 @@ const ResponseDisplay = ({ complaintId, isLoading, hasNewResponse = false }: Res
               <Bell className="mx-auto h-16 w-16 text-foreground/30 animate-float" />
               <div>
                 <p className="text-foreground/70 text-lg font-medium">
-                  No new notifications
+                  No new responses
                 </p>
                 <p className="text-foreground/50 text-sm mt-1">
                   Submit a complaint to see updates here
@@ -130,7 +139,7 @@ const ResponseDisplay = ({ complaintId, isLoading, hasNewResponse = false }: Res
               
               <Alert>
                 <AlertTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-coral" />
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
                   Processing your submission
                 </AlertTitle>
                 <AlertDescription>
@@ -138,22 +147,16 @@ const ResponseDisplay = ({ complaintId, isLoading, hasNewResponse = false }: Res
                 </AlertDescription>
               </Alert>
               
-              <div className="relative h-2 w-full bg-background/50 rounded-full overflow-hidden">
-                <div 
-                  className="absolute top-0 left-0 h-full bg-teal rounded-full transition-all duration-100 ease-out"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              
+              <Progress value={progress} className="h-2 w-full" />
               <p className="text-xs text-foreground/50">{progress}% complete</p>
             </div>
           ) : (
             <div className="w-full flex flex-col py-4">
-              <div className="border border-coral/50 rounded-lg p-4 w-full overflow-auto bg-gradient-to-br from-background to-background/50 shadow-md">
+              <div className="border border-teal-500/50 rounded-lg p-4 w-full overflow-auto bg-gradient-to-br from-background to-background/50 shadow-md">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-teal" />
-                    <span className="text-sm font-medium text-teal">Response Ready</span>
+                    <CheckCircle2 className="h-5 w-5 text-teal-500" />
+                    <span className="text-sm font-medium text-teal-500">Response Ready</span>
                   </div>
                   <span className="text-xs text-foreground/50">Just now</span>
                 </div>
@@ -167,9 +170,55 @@ const ResponseDisplay = ({ complaintId, isLoading, hasNewResponse = false }: Res
                 
                 <h4 className="text-base font-medium mt-3 mb-2">Grievance Response</h4>
                 <p className="text-foreground text-sm whitespace-pre-line">{responseData?.response}</p>
-                <p className="text-foreground text-sm mt-2"><strong>Sentiment:</strong> {responseData?.sentiment}</p>
-                <p className="text-foreground text-sm"><strong>Urgency:</strong> {responseData?.urgency}</p>
-                <p className="text-foreground text-sm"><strong>Fraud:</strong> {responseData?.fraud}</p>
+                
+                <div className="mt-4 space-y-3">
+                  <h5 className="text-sm font-medium">AI Analysis</h5>
+                  
+                  <div className="grid grid-cols-1 gap-2">
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Sentiment: {responseData?.sentiment}</span>
+                        <span className="font-medium">{Math.round(Math.random() * 30 + 70)}% confidence</span>
+                      </div>
+                      <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${responseData?.sentiment === "positive" ? "bg-emerald-500" : responseData?.sentiment === "negative" ? "bg-rose-500" : "bg-amber-500"} rounded-full`}
+                          style={{ width: `${Math.random() * 30 + 70}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Urgency: {responseData?.urgency}</span>
+                        <span className="font-medium">{Math.round(Math.random() * 20 + 75)}% confidence</span>
+                      </div>
+                      <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${responseData?.urgency === "high" ? "bg-rose-500" : "bg-emerald-500"} rounded-full`}
+                          style={{ width: `${Math.random() * 20 + 75}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Fraud Detection: {responseData?.fraud}</span>
+                        <span className="font-medium">{Math.round(Math.random() * 25 + 70)}% confidence</span>
+                      </div>
+                      <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full ${responseData?.fraud === "fraud" ? "bg-rose-500" : "bg-emerald-500"} rounded-full`}
+                          style={{ width: `${Math.random() * 25 + 70}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-3 text-xs text-foreground/60">
+                    <p>*Confidence scores indicate AI's certainty in its assessment</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

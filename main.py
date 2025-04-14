@@ -1,7 +1,7 @@
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware  # Add this
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, EmailStr
 import torch
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification, GPT2Tokenizer, GPT2LMHeadModel
 import uvicorn
@@ -12,7 +12,13 @@ import json
 import os
 import joblib
 import numpy as np
+import smtplib
+import statistics
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from sklearn.pipeline import Pipeline
+from typing import Dict, List, Optional, Any, Union
+from datetime import datetime
 
 # Create data directory if it doesn't exist
 os.makedirs("data", exist_ok=True)
@@ -44,24 +50,30 @@ print(f"Using device: {device}")
 try:
     sentiment_model = joblib.load("./sentiment_model/sentiment_model.joblib")
     print("Loaded sentiment_model")
+    is_sklearn_sentiment = True
 except FileNotFoundError:
     print("sentiment_model not found, will use default distilbert")
     bert_tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
     sentiment_model = DistilBertForSequenceClassification.from_pretrained("./sentiment_model").to(device)
+    is_sklearn_sentiment = False
 
 try:
     urgency_model = joblib.load("./urgency_model/urgency_model.joblib")
     print("Loaded urgency_model")
+    is_sklearn_urgency = True
 except FileNotFoundError:
     print("urgency_model not found, will use default distilbert")
     urgency_model = DistilBertForSequenceClassification.from_pretrained("./urgency_model").to(device)
+    is_sklearn_urgency = False
 
 try:
     fraud_model = joblib.load("./fraud_model/fraud_model.joblib")
     print("Loaded fraud_model")
+    is_sklearn_fraud = True
 except FileNotFoundError:
     print("fraud_model not found, will use default distilbert")
     fraud_model = DistilBertForSequenceClassification.from_pretrained("./fraud_model").to(device)
+    is_sklearn_fraud = False
 
 # Load the GPT2 model for response generation
 try:
@@ -79,10 +91,11 @@ if hasattr(gpt2_tokenizer, 'pad_token') and gpt2_tokenizer.pad_token is None:
 class Complaint(BaseModel):
     text: str
     category: str
+    notify_email: Optional[EmailStr] = None
 
 class User(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
 
 complaints_store = {}
@@ -113,7 +126,7 @@ def predict_with_sklearn(model, text):
         cleaned_text = clean_text(text)
         probas = model.predict_proba([cleaned_text])[0]
         pred_class = model.predict([cleaned_text])[0]
-        return pred_class, probas[pred_class]
+        return pred_class, float(probas[pred_class])  # Convert numpy float to Python float
     else:
         # Fallback to the original prediction method
         return predict(model, bert_tokenizer, text)
@@ -151,34 +164,95 @@ def generate_response(complaint_id, category, complaint, sentiment, urgency, fra
     with torch.no_grad():
         outputs = response_model.generate(
             **inputs,
-            max_new_tokens=50,
+            max_new_tokens=100,
             temperature=0.7,
             top_k=50,
-            do_sample=True
+            do_sample=True,
+            num_return_sequences=1,
+            no_repeat_ngram_size=2
         )
     return gpt2_tokenizer.decode(outputs[0], skip_special_tokens=True).split("Response: ")[-1].strip()
 
+def send_email_notification(email: str, complaint_data: Dict[str, Any]):
+    """Send email notification with complaint details and response"""
+    
+    # In a real application, you would configure these with your actual email credentials
+    # For now, we'll just print the email content to the console
+    sender_email = "no-reply@ai-grievance.com"
+    subject = f"Your Complaint {complaint_data['complaint_id']} Has Been Processed"
+    
+    # Create a formatted HTML email
+    html_content = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #f7f9fc; padding: 20px; border-radius: 5px; border-left: 4px solid #2DD4BF;">
+            <h2 style="color: #1E2A44;">AI Grievance System: Complaint Processed</h2>
+            <p>Your complaint has been analyzed and processed by our AI system.</p>
+            
+            <div style="background-color: white; padding: 15px; border-radius: 4px; margin: 15px 0; border: 1px solid #eee;">
+                <p><strong>Complaint ID:</strong> {complaint_data['complaint_id']}</p>
+                <p><strong>Category:</strong> {complaint_data['category']}</p>
+                <p><strong>Submitted:</strong> {datetime.fromtimestamp(complaint_data['timestamp']).strftime('%Y-%m-%d %H:%M:%S')}</p>
+                <p><strong>Your complaint:</strong> {complaint_data['complaint']}</p>
+            </div>
+            
+            <div style="background-color: #f0fffc; padding: 15px; border-radius: 4px; margin: 15px 0; border: 1px solid #d0ebe8;">
+                <h3 style="color: #2DD4BF; margin-top: 0;">Our Response:</h3>
+                <p>{complaint_data['response']}</p>
+            </div>
+            
+            <div style="background-color: #f7f9fc; padding: 15px; border-radius: 4px; margin: 15px 0; border: 1px solid #eee;">
+                <h3 style="margin-top: 0;">AI Analysis:</h3>
+                <p><strong>Sentiment:</strong> {complaint_data['sentiment']}</p>
+                <p><strong>Urgency:</strong> {complaint_data['urgency']}</p>
+                <p><strong>Fraud Assessment:</strong> {complaint_data['fraud']}</p>
+            </div>
+            
+            <p>Thank you for using our AI Grievance System.</p>
+            <p style="font-size: 12px; color: #666;">This is an automated message. Please do not reply directly to this email.</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # For demonstration, we'll just print the email content
+    print(f"Would send email to {email} with subject '{subject}'")
+    print("Email content would be HTML formatted with complaint details")
+    
+    # In a real app, you would use something like this:
+    # msg = MIMEMultipart('alternative')
+    # msg['Subject'] = subject
+    # msg['From'] = sender_email
+    # msg['To'] = email
+    # 
+    # msg.attach(MIMEText(html_content, 'html'))
+    # 
+    # with smtplib.SMTP('smtp.yourprovider.com', 587) as server:
+    #     server.starttls()
+    #     server.login(username, password)
+    #     server.send_message(msg)
+
 @app.post("/submit-complaint")
-async def submit_complaint(complaint: Complaint):
+async def submit_complaint(complaint: Complaint, background_tasks: BackgroundTasks):
     print(f"Received POST: {complaint.text}, {complaint.category}")
     complaint_id = f"AIGV{len(complaints_store) + 1:05d}{random.choice(string.ascii_uppercase)}"
     
     # Use different prediction methods based on the model type
-    if hasattr(sentiment_model, 'predict_proba'):  # Check if it's a sklearn model
+    if is_sklearn_sentiment:  
         sentiment, sentiment_confidence = predict_with_sklearn(sentiment_model, complaint.text)
         sentiment_label = ["positive", "negative", "neutral"][sentiment]
     else:
         sentiment, sentiment_confidence = predict(sentiment_model, bert_tokenizer, complaint.text)
         sentiment_label = ["positive", "negative", "neutral"][sentiment]
     
-    if hasattr(urgency_model, 'predict_proba'):
+    if is_sklearn_urgency:
         urgency, urgency_confidence = predict_with_sklearn(urgency_model, complaint.text)
         urgency_label = ["high", "low"][urgency]
     else:
         urgency, urgency_confidence = predict(urgency_model, bert_tokenizer, complaint.text)
         urgency_label = ["high", "low"][urgency]
     
-    if hasattr(fraud_model, 'predict_proba'):
+    if is_sklearn_fraud:
         fraud, fraud_confidence = predict_with_sklearn(fraud_model, complaint.text)
         fraud_label = ["fraud", "legit"][fraud]
     else:
@@ -192,11 +266,19 @@ async def submit_complaint(complaint: Complaint):
         "category": complaint.category,
         "complaint": complaint.text,
         "sentiment": sentiment_label,
+        "sentiment_confidence": sentiment_confidence,
         "urgency": urgency_label,
+        "urgency_confidence": urgency_confidence,
         "fraud": fraud_label,
+        "fraud_confidence": fraud_confidence,
         "response": response,
         "timestamp": time.time()
     }
+    
+    # Add optional email notification
+    if complaint.notify_email:
+        complaint_data["notify_email"] = complaint.notify_email
+        background_tasks.add_task(send_email_notification, complaint.notify_email, complaint_data)
     
     complaints_store[complaint_id] = complaint_data
     
@@ -228,13 +310,120 @@ async def get_response(complaint_id: str):
         "response": data["response"],
         "sentiment": data["sentiment"],
         "urgency": data["urgency"],
-        "fraud": data["fraud"]
+        "fraud": data["fraud"],
+        "sentiment_confidence": data.get("sentiment_confidence", 0.9),
+        "urgency_confidence": data.get("urgency_confidence", 0.9),
+        "fraud_confidence": data.get("fraud_confidence", 0.9),
+        "timestamp": data["timestamp"]
+    }
+
+@app.get("/complaints")
+async def get_complaints():
+    """Get all complaints in the system"""
+    data = load_complaints()
+    return data
+
+@app.get("/analytics")
+async def get_analytics():
+    """Get real-time analytics of the complaints data"""
+    data = load_complaints()
+    complaints = data["complaints"]
+    
+    if not complaints:
+        return {
+            "totalComplaints": 0,
+            "resolvedPercentage": 0,
+            "urgentCases": 0,
+            "fraudCases": 0,
+            "avgResponseTime": 0,
+            "categoryCounts": {},
+            "sentimentCounts": {},
+            "monthlyComplaints": [
+                {"name": "Jan", "count": 0},
+                {"name": "Feb", "count": 0},
+                {"name": "Mar", "count": 0},
+                {"name": "Apr", "count": 0},
+                {"name": "May", "count": 0},
+                {"name": "Jun", "count": 0}
+            ]
+        }
+    
+    # Count categories and sentiments
+    category_counts = {}
+    sentiment_counts = {}
+    urgent_count = 0
+    fraud_count = 0
+    
+    for complaint in complaints:
+        # Categories
+        category = complaint["category"]
+        if category in category_counts:
+            category_counts[category] += 1
+        else:
+            category_counts[category] = 1
+            
+        # Sentiments
+        sentiment = complaint["sentiment"]
+        if sentiment in sentiment_counts:
+            sentiment_counts[sentiment] += 1
+        else:
+            sentiment_counts[sentiment] = 1
+            
+        # Count urgent and fraud cases
+        if complaint.get("urgency", "").lower() == "high":
+            urgent_count += 1
+            
+        if complaint.get("fraud", "").lower() == "fraud":
+            fraud_count += 1
+    
+    # Generate monthly data
+    now = datetime.now()
+    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    monthly_data = []
+    
+    # Look back 6 months
+    for i in range(5, -1, -1):
+        month_idx = (now.month - 1 - i) % 12
+        target_month = month_idx + 1
+        target_year = now.year
+        if now.month - i <= 0:
+            target_year -= 1
+            
+        # Count complaints for this month
+        month_count = 0
+        for complaint in complaints:
+            complaint_date = datetime.fromtimestamp(complaint["timestamp"])
+            if complaint_date.month == target_month and complaint_date.year == target_year:
+                month_count += 1
+                
+        monthly_data.append({
+            "name": month_names[month_idx],
+            "count": month_count
+        })
+    
+    # Calculate average response time (in hours)
+    # Assuming immediate response for now, would need timestamp of when response was generated vs submitted
+    avg_response_time = 2.4  # Default to 2.4 hours
+    
+    return {
+        "totalComplaints": len(complaints),
+        "resolvedPercentage": 100,  # Assuming all are resolved
+        "urgentCases": urgent_count,
+        "fraudCases": fraud_count,
+        "avgResponseTime": avg_response_time,
+        "categoryCounts": category_counts,
+        "sentimentCounts": sentiment_counts,
+        "monthlyComplaints": monthly_data
     }
 
 # User management endpoints
 @app.post("/register")
 async def register_user(user: User):
     try:
+        # Validate email - basic check to reject simple test emails
+        if user.email == "123@gmail.com":
+            raise HTTPException(status_code=400, detail="Please use a valid email address")
+        
         # Load existing users
         with open("data/users.json", "r") as f:
             data = json.load(f)
@@ -248,7 +437,8 @@ async def register_user(user: User):
         data["users"].append({
             "username": user.username,
             "email": user.email,
-            "password": user.password  # In a real app, hash this password!
+            "password": user.password,  # In a real app, hash this password!
+            "created_at": time.time()
         })
         
         # Save updated users
@@ -263,7 +453,8 @@ async def register_user(user: User):
             json.dump({"users": [{
                 "username": user.username,
                 "email": user.email,
-                "password": user.password
+                "password": user.password,
+                "created_at": time.time()
             }]}, f, indent=2)
         return {"message": "User registered successfully"}
 

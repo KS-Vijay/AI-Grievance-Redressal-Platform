@@ -6,10 +6,12 @@ import NavBar from '@/components/NavBar';
 import ProfileCard from '@/components/ProfileCard';
 import ComplaintForm from '@/components/ComplaintForm';
 import ResponseDisplay from '@/components/ResponseDisplay';
-import AnalyticsDisplay from '@/components/AnalyticsDisplay';
+import RealTimeAnalytics from '@/components/RealTimeAnalytics';
+import ComplaintHistory from '@/components/ComplaintHistory';
 import LegalChatBot from '@/components/LegalChatBot';
 import ThreeJSBackground from '@/components/ThreeJSBackground';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Dashboard = () => {
   const { isDarkMode } = useTheme();
@@ -69,7 +71,7 @@ const Dashboard = () => {
   
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      <ThreeJSBackground className="opacity-25" />
+      <ThreeJSBackground className="opacity-10" />
       <div className="absolute inset-0 backdrop-blur-sm z-0"></div>
       
       <NavBar isDarkMode={isDarkMode} />
@@ -78,7 +80,7 @@ const Dashboard = () => {
         <div className="container mx-auto">
           <div className="mb-6 text-center">
             <h1 className="text-3xl md:text-4xl font-extrabold text-3d">
-              <span className="text-gradient-teal">AI</span>
+              <span className="text-primary">AI</span>
               <span className="text-foreground ml-1">Grievance</span>
             </h1>
             <p className="text-foreground/70 text-lg mt-2 max-w-2xl mx-auto">
@@ -95,29 +97,46 @@ const Dashboard = () => {
             />
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-5 space-y-6">
-              <ComplaintForm 
-                onSubmit={() => {}} 
-                setComplaintId={setComplaintId}
-                setIsProcessing={setIsProcessing}
-              />
-              <ResponseDisplay 
-                complaintId={complaintId}
-                isLoading={isProcessing}
-                hasNewResponse={hasNewResponse}
-              />
-            </div>
+          <Tabs defaultValue="submit" className="w-full">
+            <TabsList className="grid grid-cols-3 mb-6 w-full max-w-md mx-auto">
+              <TabsTrigger value="submit">Submit</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            </TabsList>
             
-            <div className="lg:col-span-7">
-              <div className="h-full">
-                <AnalyticsDisplay 
-                  resolvedPercentage={80}
-                  urgentCases={12}
-                />
+            <TabsContent value="submit" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-5 space-y-6">
+                  <ComplaintForm 
+                    onSubmit={() => setHasNewResponse(false)} 
+                    setComplaintId={setComplaintId}
+                    setIsProcessing={setIsProcessing}
+                  />
+                  <ResponseDisplay 
+                    complaintId={complaintId}
+                    isLoading={isProcessing}
+                    hasNewResponse={hasNewResponse}
+                  />
+                </div>
+                
+                <div className="lg:col-span-7">
+                  <div className="h-full">
+                    <RealTimeAnalytics />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="history">
+              <ComplaintHistory />
+            </TabsContent>
+            
+            <TabsContent value="analytics">
+              <div className="space-y-6">
+                <RealTimeAnalytics />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
       

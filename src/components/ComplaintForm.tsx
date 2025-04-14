@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -21,13 +22,24 @@ interface ComplaintFormProps {
 const ComplaintForm = ({ onSubmit, setComplaintId, setIsProcessing }: ComplaintFormProps) => {
   const [complaint, setComplaint] = useState('');
   const [category, setCategory] = useState('');
+  const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!complaint || !category) {
       toast.error('Please fill all fields');
+      return;
+    }
+
+    if (email && !validateEmail(email)) {
+      toast.error('Please enter a valid email address');
       return;
     }
     
@@ -42,7 +54,8 @@ const ComplaintForm = ({ onSubmit, setComplaintId, setIsProcessing }: ComplaintF
         },
         body: JSON.stringify({ 
           text: complaint, 
-          category 
+          category,
+          notify_email: email || null
         }),
       });
       
@@ -80,7 +93,7 @@ const ComplaintForm = ({ onSubmit, setComplaintId, setIsProcessing }: ComplaintF
               placeholder="Describe your grievance here..."
               value={complaint}
               onChange={(e) => setComplaint(e.target.value)}
-              className="h-32 resize-none bg-background/50 focus:ring-2 focus:ring-teal transition-all"
+              className="h-32 resize-none bg-background/50 focus:ring-2 focus:ring-primary transition-all"
               required
             />
           </div>
@@ -90,7 +103,7 @@ const ComplaintForm = ({ onSubmit, setComplaintId, setIsProcessing }: ComplaintF
               Category
             </label>
             <Select value={category} onValueChange={setCategory} required>
-              <SelectTrigger className="bg-background/50 focus:ring-2 focus:ring-teal transition-all">
+              <SelectTrigger className="bg-background/50 focus:ring-2 focus:ring-primary transition-all">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
@@ -104,9 +117,26 @@ const ComplaintForm = ({ onSubmit, setComplaintId, setIsProcessing }: ComplaintF
             </Select>
           </div>
           
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium">
+              Email for Notifications (Optional)
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="youremail@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-background/50 focus:ring-2 focus:ring-primary transition-all"
+            />
+            <p className="text-xs text-foreground/60">
+              We'll send you the response details by email if provided
+            </p>
+          </div>
+          
           <Button
             type="submit"
-            className="w-full bg-teal hover:bg-teal/90 transition-all transform hover:-translate-y-1 hover:glow-teal"
+            className="w-full bg-primary hover:bg-primary/90 transition-all transform hover:-translate-y-1 hover:shadow-lg"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -117,7 +147,7 @@ const ComplaintForm = ({ onSubmit, setComplaintId, setIsProcessing }: ComplaintF
                 </svg>
                 Processing...
               </div>
-            ) : 'Submit'}
+            ) : 'Submit Complaint'}
           </Button>
         </form>
       </div>

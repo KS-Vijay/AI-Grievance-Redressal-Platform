@@ -1,210 +1,273 @@
 
-import { useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import GlassmorphicCard from './GlassmorphicCard';
-import * as THREE from 'three';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { RefreshCcw, TrendingUp, AlertCircle, CheckCircle2, Shield, Clock8 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AnalyticsDisplayProps {
-  resolvedPercentage: number;
-  urgentCases: number;
+  resolvedPercentage?: number;
+  urgentCases?: number;
 }
 
-const AnalyticsDisplay = ({
-  resolvedPercentage,
-  urgentCases,
-}: AnalyticsDisplayProps) => {
-  const barContainerRef = useRef<HTMLDivElement>(null);
-  const sphereContainerRef = useRef<HTMLDivElement>(null);
+interface AnalyticsSummary {
+  totalComplaints: number;
+  resolvedPercentage: number;
+  urgentCases: number;
+  fraudCases: number;
+  avgResponseTime: number;
+  categoryCounts: Record<string, number>;
+  sentimentCounts: Record<string, number>;
+  monthlyComplaints: Array<{name: string, count: number}>;
+}
 
-  // Sample data for enhanced analytics charts
-  const weeklyData = [
-    { name: 'Mon', complaints: 12, resolved: 10 },
-    { name: 'Tue', complaints: 19, resolved: 15 },
-    { name: 'Wed', complaints: 15, resolved: 12 },
-    { name: 'Thu', complaints: 22, resolved: 17 },
-    { name: 'Fri', complaints: 18, resolved: 14 },
-    { name: 'Sat', complaints: 8, resolved: 7 },
-    { name: 'Sun', complaints: 5, resolved: 5 },
-  ];
+const defaultColors = ['#2DD4BF', '#F472B6', '#38BDF8', '#FB923C', '#10B981', '#A78BFA'];
 
-  const categoryData = [
-    { name: 'Product', value: 35 },
-    { name: 'Payment', value: 25 },
-    { name: 'Employee', value: 18 },
-    { name: 'Vendor', value: 12 },
-    { name: 'Legal', value: 10 },
-  ];
+const AnalyticsDisplay = ({ resolvedPercentage = 80, urgentCases = 12 }: AnalyticsDisplayProps) => {
+  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAnalytics = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/analytics');
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics');
+      }
+      const data = await response.json();
+      setAnalytics(data);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      // Use dummy data if API fails
+      setAnalytics({
+        totalComplaints: 24,
+        resolvedPercentage: resolvedPercentage,
+        urgentCases: urgentCases,
+        fraudCases: 5,
+        avgResponseTime: 2.4,
+        categoryCounts: {
+          "product": 35,
+          "payment": 25,
+          "employee": 18,
+          "vendor": 12,
+          "legal": 10
+        },
+        sentimentCounts: {
+          "positive": 30,
+          "negative": 45,
+          "neutral": 25
+        },
+        monthlyComplaints: [
+          { name: 'Jan', count: 12 },
+          { name: 'Feb', count: 19 },
+          { name: 'Mar', count: 15 },
+          { name: 'Apr', count: 22 },
+          { name: 'May', count: 18 },
+          { name: 'Jun', count: 8 }
+        ]
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!sphereContainerRef.current) return;
+    fetchAnalytics();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchAnalytics, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-    // Set up scene for sphere visualization
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      180 / 120,
-      0.1,
-      1000
+  const prepareChartData = (data: Record<string, number> = {}) => {
+    return Object.entries(data).map(([name, value]) => ({ name, value }));
+  };
+
+  if (loading && !analytics) {
+    return (
+      <GlassmorphicCard className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold">Analytics Dashboard</h3>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        </div>
+      </GlassmorphicCard>
     );
+  }
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(180, 120);
-    sphereContainerRef.current.appendChild(renderer.domElement);
-
-    // Create spheres for urgent cases
-    const spheres: THREE.Mesh[] = [];
-    const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-    
-    const coralMaterial = new THREE.MeshBasicMaterial({
-      color: 0xF472B6,
-      transparent: true,
-      opacity: 0.8,
-    });
-    
-    const sphereCount = Math.min(urgentCases, 12); // Limit to 12 max spheres
-    
-    for (let i = 0; i < sphereCount; i++) {
-      const sphere = new THREE.Mesh(sphereGeometry, coralMaterial);
-      
-      // Position spheres in a circular pattern
-      const angle = (i / sphereCount) * Math.PI * 2;
-      const radius = 3;
-      sphere.position.x = Math.cos(angle) * radius;
-      sphere.position.y = Math.sin(angle) * radius;
-      sphere.position.z = Math.random() * 2 - 1;
-      
-      spheres.push(sphere);
-      scene.add(sphere);
-    }
-    
-    camera.position.z = 7;
-    
-    const animate = () => {
-      requestAnimationFrame(animate);
-      
-      // Rotate and animate spheres
-      spheres.forEach((sphere, i) => {
-        const time = Date.now() * 0.001;
-        const offset = i * 0.2;
-        
-        sphere.position.y += Math.sin(time + offset) * 0.01;
-        sphere.rotation.x += 0.01;
-        sphere.rotation.y += 0.01;
-      });
-      
-      renderer.render(scene, camera);
-    };
-    
-    animate();
-    
-    return () => {
-      if (sphereContainerRef.current && sphereContainerRef.current.contains(renderer.domElement)) {
-        sphereContainerRef.current.removeChild(renderer.domElement);
-      }
-      
-      // Dispose resources
-      sphereGeometry.dispose();
-      coralMaterial.dispose();
-      renderer.dispose();
-    };
-  }, [urgentCases]);
+  // Use the fetched analytics or fallback to props
+  const totalComplaints = analytics?.totalComplaints || 24;
+  const actualResolvedPercentage = analytics?.resolvedPercentage || resolvedPercentage;
+  const actualUrgentCases = analytics?.urgentCases || urgentCases;
+  const fraudCases = analytics?.fraudCases || 5;
+  const avgResponseTime = analytics?.avgResponseTime || 2.4;
+  
+  const categoryData = analytics ? prepareChartData(analytics.categoryCounts) : [];
+  const sentimentData = analytics ? prepareChartData(analytics.sentimentCounts) : [];
+  const monthlyData = analytics?.monthlyComplaints || [];
 
   return (
     <GlassmorphicCard className="p-6">
-      <h3 className="text-2xl font-bold mb-6 text-gradient-teal">Analytics Dashboard</h3>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-xl font-bold">Analytics Dashboard</h3>
+        </div>
+        <Button onClick={fetchAnalytics} size="sm" variant="outline" className="hover:bg-primary/10">
+          <RefreshCcw className="w-4 h-4 mr-2" /> Refresh
+        </Button>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <div>
-            <h4 className="text-lg font-medium mb-4">Resolution Rate</h4>
-            
-            <div className="mb-4" ref={barContainerRef}>
-              <div className="h-8 w-full bg-background/50 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-teal flex items-center justify-end transition-all duration-1000 ease-out p-2"
-                  style={{ width: `${resolvedPercentage}%` }}
-                >
-                  <span className="text-xs font-medium">{resolvedPercentage}%</span>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-card/30 p-4 rounded-lg border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  <p className="text-sm font-medium">Total Complaints</p>
+                </div>
+                <p className="text-2xl font-bold">{totalComplaints}</p>
+                <div className="mt-2 h-1 w-full bg-background/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full" style={{ width: '100%' }}></div>
                 </div>
               </div>
-              <p className="text-xs mt-1 text-foreground/60">
-                Complaints successfully resolved
-              </p>
+
+              <div className="bg-card/30 p-4 rounded-lg border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-4 h-4 text-accent" />
+                  <p className="text-sm font-medium">Urgent Cases</p>
+                </div>
+                <p className="text-2xl font-bold">{actualUrgentCases}</p>
+                <div className="mt-2 h-1 w-full bg-background/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-accent rounded-full" style={{ width: `${(actualUrgentCases / totalComplaints) * 100}%` }}></div>
+                </div>
+              </div>
             </div>
 
-            <div className="mt-8">
-              <h4 className="text-lg font-medium mb-4">Weekly Complaints Trend</h4>
-              <div className="h-[200px] w-full bg-background/10 rounded-lg p-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
-                    <YAxis stroke="rgba(255,255,255,0.5)" />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'rgba(30, 42, 68, 0.8)',
-                        borderColor: '#2DD4BF',
-                        borderRadius: '8px',
-                        color: 'white'
-                      }} 
-                    />
-                    <Bar dataKey="complaints" fill="#F472B6" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="resolved" fill="#2DD4BF" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+            <h4 className="text-lg font-medium mb-4">Monthly Complaints</h4>
+            <div className="h-[200px] w-full bg-background/10 rounded-lg p-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
+                  <YAxis stroke="rgba(255,255,255,0.5)" />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'rgba(30, 42, 68, 0.8)',
+                      borderColor: '#2DD4BF',
+                      borderRadius: '8px',
+                      color: 'white'
+                    }} 
+                  />
+                  <Bar dataKey="count" fill="#2DD4BF" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
         
         <div className="space-y-6">
           <div>
-            <h4 className="text-lg font-medium mb-4">Urgent Cases This Week</h4>
-            
-            <div className="flex items-center mb-6">
-              <div className="mr-4 w-[180px] h-[120px]" ref={sphereContainerRef}></div>
-              
-              <div>
-                <p className="text-3xl font-bold text-coral">{urgentCases}</p>
-                <p className="text-xs text-foreground/60">High priority issues</p>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-card/30 p-4 rounded-lg border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-4 h-4 text-amber-500" />
+                  <p className="text-sm font-medium">Fraud Cases</p>
+                </div>
+                <p className="text-2xl font-bold">{fraudCases}</p>
+                <div className="mt-2 h-1 w-full bg-background/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: `${(fraudCases / totalComplaints) * 100}%` }}></div>
+                </div>
+              </div>
+
+              <div className="bg-card/30 p-4 rounded-lg border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock8 className="w-4 h-4 text-blue-500" />
+                  <p className="text-sm font-medium">Avg Response Time</p>
+                </div>
+                <p className="text-2xl font-bold">{avgResponseTime.toFixed(1)} hrs</p>
+                <div className="mt-2 h-1 w-full bg-background/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: '70%' }}></div>
+                </div>
               </div>
             </div>
 
-            <div className="mt-8">
-              <h4 className="text-lg font-medium mb-4">Response Time</h4>
-              <div className="bg-background/10 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm">Average:</span>
-                  <span className="text-sm font-medium text-teal">2.4 hours</span>
+            <h4 className="text-lg font-medium mb-4">Categories</h4>
+            <div className="h-[200px] bg-background/10 rounded-lg p-4">
+              {categoryData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={defaultColors[index % defaultColors.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => [value, 'Count']}
+                      contentStyle={{
+                        backgroundColor: 'rgba(30, 42, 68, 0.8)',
+                        borderColor: '#2DD4BF',
+                        borderRadius: '8px',
+                        color: 'white'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-foreground/50">No category data available</p>
                 </div>
-                <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden">
-                  <div className="h-full bg-teal rounded-full" style={{ width: '70%' }}></div>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs text-foreground/50">0h</span>
-                  <span className="text-xs text-foreground/50">24h</span>
-                </div>
-              </div>
+              )}
+            </div>
 
-              <div className="mt-6">
-                <h4 className="text-lg font-medium mb-4">Complaint Categories</h4>
-                <div className="space-y-3">
-                  {categoryData.map((category) => (
-                    <div key={category.name}>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">{category.name}</span>
-                        <span className="text-xs">{category.value}%</span>
-                      </div>
-                      <div className="h-2 w-full bg-background/50 rounded-full overflow-hidden mt-1">
-                        <div 
-                          className="h-full bg-coral/70 rounded-full" 
-                          style={{ width: `${category.value}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
+            <h4 className="text-lg font-medium mb-4 mt-6">Sentiment Analysis</h4>
+            <div className="h-[200px] bg-background/10 rounded-lg p-4">
+              {sentimentData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={sentimentData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {sentimentData.map((entry, index) => {
+                        const color = entry.name.toLowerCase() === 'positive' 
+                          ? '#10B981' 
+                          : entry.name.toLowerCase() === 'negative'
+                            ? '#EF4444'
+                            : '#F59E0B';
+                        return <Cell key={`cell-${index}`} fill={color} />;
+                      })}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value) => [value, 'Count']}
+                      contentStyle={{
+                        backgroundColor: 'rgba(30, 42, 68, 0.8)',
+                        borderColor: '#2DD4BF',
+                        borderRadius: '8px',
+                        color: 'white'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-foreground/50">No sentiment data available</p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
