@@ -150,28 +150,80 @@ def generate_financial_response(complaint_id):
     """Generate a response for financial complaints"""
     return f"Thank you for bringing this financial matter to our attention. We take billing concerns seriously. Please email the transaction details to support@grievance.com, referencing complaint ID {complaint_id}. Our financial team will investigate this promptly."
 
-def generate_response(complaint_id, category, complaint, sentiment, urgency, fraud):
-    # Check if it's a financial complaint
-    if category.lower() == "payment" or detect_financial_complaint(complaint):
-        return generate_financial_response(complaint_id)
+def generate_response(complaint_id, category, complaint, sentiment=None, urgency=None, fraud=None):
+    """Generate appropriate response for any type of complaint in a unified function"""
     
-    # Otherwise use the response model
-    prompt = (
-        f"Complaint ID: {complaint_id} | Category: {category} | Complaint: {complaint} | "
-        f"Sentiment: {sentiment} | Urgency: {urgency} | Fraud: {fraud} | Response: "
-    )
-    inputs = gpt2_tokenizer(prompt, return_tensors="pt").to(device)
-    with torch.no_grad():
-        outputs = response_model.generate(
-            **inputs,
-            max_new_tokens=100,
-            temperature=0.7,
-            top_k=50,
-            do_sample=True,
-            num_return_sequences=1,
-            no_repeat_ngram_size=2
-        )
-    return gpt2_tokenizer.decode(outputs[0], skip_special_tokens=True).split("Response: ")[-1].strip()
+    # Input validation
+    if not isinstance(complaint, str) or complaint.strip() == "":
+        return f"Thank you for reaching out (ID: {complaint_id}). It seems your message was empty. Please provide details about your concern so we can assist you properly."
+    
+    # Check if it's a casual greeting or very short message (less than 5 words)
+    complaint_lower = complaint.lower().strip()
+    words = complaint_lower.split()
+    
+    if len(words) <= 5:
+        greeting_phrases = ["hi", "hello", "hey", "what's up", "how are you", "good morning", "good afternoon", "good evening"]
+        if any(phrase in complaint_lower for phrase in greeting_phrases) or len(words) < 3:
+            return f"Thank you for your message (ID: {complaint_id}). It appears your message doesn't contain a specific complaint or concern. Please provide more details about your issue so that we can assist you properly."
+    
+    # Use the response model with proper formatting
+    try:
+        # Create prompt with comprehensive instructions
+        prompt = f"""
+Complaint ID: {complaint_id}
+Category: {category}
+Complaint: {complaint}
+
+Please provide a professional, detailed, and empathetic response to this customer complaint that:
+1. Acknowledges their concern
+2. Offers a clear path to resolution 
+3. Sets appropriate expectations
+4. Includes the complaint ID
+5. Ends with a professional closing
+
+Response:"""
+
+        inputs = gpt2_tokenizer(prompt, return_tensors="pt").to(device)
+        
+        with torch.no_grad():
+            # Clear any leftover cached memory
+            if device.type == 'cuda':
+                torch.cuda.empty_cache()
+                
+            outputs = response_model.generate(
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs.get("attention_mask", None),
+                max_length=inputs["input_ids"].shape[1] + 150,  # Add to existing length
+                temperature=0.7,
+                top_k=40,
+                top_p=0.9,
+                do_sample=True,
+                num_return_sequences=1,
+                no_repeat_ngram_size=3,
+                repetition_penalty=1.2,
+                early_stopping=True
+            )
+        
+        # Extract just the generated response using a more reliable approach
+        full_output = gpt2_tokenizer.decode(outputs[0], skip_special_tokens=True)
+        
+        # Extract the response part
+        if "Response:" in full_output:
+            response = full_output.split("Response:")[-1].strip()
+        else:
+            # If extraction fails, use a fallback
+            response = full_output[len(prompt)-10:].strip()  # Approximate the prompt length
+            
+        # Validate response quality
+        if len(response.split()) < 10 or "~~~~~" in response or not response.strip():
+            # Fallback response if model output is poor
+            return f"Thank you for bringing this {category.lower()} concern to our attention (ID: {complaint_id}). We take your feedback seriously and will investigate this matter promptly. A representative will follow up with you soon regarding your specific situation. We appreciate your patience and are committed to finding a satisfactory resolution."
+            
+        return response
+        
+    except Exception as e:
+        print(f"Error generating response: {e}")
+        return f"Thank you for your complaint (ID: {complaint_id}). We take all {category.lower()} issues seriously and are investigating your concern. A representative will follow up with you shortly to resolve this matter. We appreciate your patience and value your feedback."
 
 def send_email_notification(email: str, complaint_data: Dict[str, Any]):
     """Send email notification with complaint details and response"""

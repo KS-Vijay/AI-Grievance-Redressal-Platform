@@ -27,7 +27,8 @@ venv/
 *.safetensors
 fraud_model/
 .fraud_model/
-
+complaint_model/
+.complaint_model/
 response_model/
 .response_model/
 
